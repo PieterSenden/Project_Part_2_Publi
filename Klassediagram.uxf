@@ -1,0 +1,240 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<diagram program="umlet" version="14.2">
+  <zoom_level>11</zoom_level>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>154</x>
+      <y>352</y>
+      <w>110</w>
+      <h>143</h>
+    </coordinates>
+    <panel_attributes>World
+-
+height
+width
+-
+addShip()
+addBullet()
+getEntityAt()
+evolve()
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>836</x>
+      <y>759</y>
+      <w>88</w>
+      <h>143</h>
+    </coordinates>
+    <panel_attributes>Bullet
+-
+isFired
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>341</x>
+      <y>770</y>
+      <w>209</w>
+      <h>176</h>
+    </coordinates>
+    <panel_attributes>Ship
+-
+orientation
+thrusterForce
+thrusterStatus
+totalMass
+-
+hasThrusterActivated()
+thrustOn()
+thrustOff()</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>682</x>
+      <y>473</y>
+      <w>220</w>
+      <h>231</h>
+    </coordinates>
+    <panel_attributes>/Entity/
+-
+radius
+mass
+density
+speedLimit
+-
+move()
+overlap()
+getDistanceBetween()
+getTimeToCollision()
+getCollisionPosition()
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>825</x>
+      <y>242</y>
+      <w>176</w>
+      <h>99</h>
+    </coordinates>
+    <panel_attributes>Position
+-
+
+-
+getDistanceBetween()</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>572</x>
+      <y>242</y>
+      <w>165</w>
+      <h>99</h>
+    </coordinates>
+    <panel_attributes>Velocity
+-
+
+-
+getSpeed()</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>704</x>
+      <y>0</y>
+      <w>165</w>
+      <h>110</h>
+    </coordinates>
+    <panel_attributes>/PhysicalVector/
+-
+xComponent
+yComponent
+-
+isValidComponent()
+getAsArray()</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>484</x>
+      <y>693</y>
+      <w>319</w>
+      <h>99</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;-</panel_attributes>
+    <additional_attributes>270.0;10.0;270.0;40.0;10.0;40.0;10.0;70.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>770</x>
+      <y>693</y>
+      <w>132</w>
+      <h>88</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;-</panel_attributes>
+    <additional_attributes>10.0;10.0;10.0;40.0;100.0;40.0;100.0;60.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>759</x>
+      <y>99</y>
+      <w>143</w>
+      <h>165</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;-</panel_attributes>
+    <additional_attributes>10.0;10.0;10.0;90.0;110.0;90.0;110.0;130.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>671</x>
+      <y>99</y>
+      <w>121</w>
+      <h>165</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;-</panel_attributes>
+    <additional_attributes>90.0;10.0;90.0;90.0;10.0;90.0;10.0;130.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>253</x>
+      <y>352</y>
+      <w>451</w>
+      <h>165</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-&gt;
+m1=0..1
+m2=0..*
+contains &gt;</panel_attributes>
+    <additional_attributes>10.0;10.0;120.0;10.0;120.0;120.0;390.0;120.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>671</x>
+      <y>330</y>
+      <w>110</w>
+      <h>165</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-
+m1=1</panel_attributes>
+    <additional_attributes>10.0;10.0;10.0;70.0;80.0;70.0;80.0;130.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>792</x>
+      <y>330</y>
+      <w>110</w>
+      <h>165</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-
+m1=1</panel_attributes>
+    <additional_attributes>80.0;10.0;80.0;70.0;10.0;70.0;10.0;130.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>539</x>
+      <y>814</y>
+      <w>319</w>
+      <h>88</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-&gt;
+m1=0..1
+m2=0..*
+
+
+contains/has fired &gt;
+</panel_attributes>
+    <additional_attributes>10.0;20.0;270.0;20.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLNote</id>
+    <coordinates>
+      <x>572</x>
+      <y>880</y>
+      <w>242</w>
+      <h>77</h>
+    </coordinates>
+    <panel_attributes>A bullet is either associated
+with a world or a ship.
+bg=#abcdef</panel_attributes>
+    <additional_attributes/>
+  </element>
+</diagram>
