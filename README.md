@@ -1,2 +1,2 @@
-# Project_Part_2
-Part 2 of the project of OGP
+# Project_Part_1
+Part 1 of the project of OGP: Asteroids!
