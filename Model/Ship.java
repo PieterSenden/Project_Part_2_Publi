@@ -1,5 +1,8 @@
-package asteroids.model;
+package asteroids.model.model;
 
+import asteroids.model.exceptions.IllegalComponentException;
+import asteroids.model.exceptions.IllegalRadiusException;
+import asteroids.model.exceptions.OverlapException;
 import be.kuleuven.cs.som.annotate.*;
 
 /**

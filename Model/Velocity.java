@@ -1,12 +1,13 @@
-package asteroids.model;
+package asteroids.model.model;
 
+import asteroids.model.exceptions.IllegalComponentException;
 import be.kuleuven.cs.som.annotate.Raw;
 
 /**
- * A class representing the velocity of a ship.
+ * A class representing the velocity of an entity.
  * 
  * @author Joris Ceulemans & Pieter Senden
- * @version 1.0
+ * @version 2.0
  * 
  * @invar  The xComponent of each velocity must be a valid xComponent for any velocity.
  *       | isValidComponent(getxComponent())

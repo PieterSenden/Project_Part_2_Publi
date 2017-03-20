@@ -1,4 +1,6 @@
-package asteroids.model;
+package asteroids.model.model;
+
+import asteroids.model.exceptions.IllegalComponentException;
 
 /**
  * A class representing the position of an entity.

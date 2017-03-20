@@ -1,11 +1,11 @@
-package asteroids.model;
+package asteroids.model.model;
 
+import asteroids.model.exceptions.IllegalComponentException;
 import be.kuleuven.cs.som.annotate.Basic;
 import be.kuleuven.cs.som.annotate.Raw;
 
 /**
  * A class representing a physical vector.
- * 
  * 
  * @invar  The xComponent of each physical vector must be a valid xComponent for any physical vector.
  *       | isValidComponent(getxComponent())
