@@ -1,4 +1,4 @@
-package asteroids.model.model;
+package asteroids.model.representation;
 
 import asteroids.model.exceptions.IllegalComponentException;
 import be.kuleuven.cs.som.annotate.Raw;
@@ -92,8 +92,7 @@ public class Velocity extends PhysicalVector {
 	 * Generate a copy of this Velocity object
 	 * @return a copy of this Velocity object.
 	 */
-	@Override
-	public Velocity clone() {
+	public Velocity copy() {
 		return new Velocity(getxComponent(), getyComponent());
 	}
 	
@@ -105,4 +104,31 @@ public class Velocity extends PhysicalVector {
 	public double getSpeed() {
 		return Math.hypot(getxComponent(), getyComponent());
 	}
+	
+	/**
+	 * Check whether this velocity is equal to the given object.
+	 * @return True iff other is an instance of the class Velocity, 
+	 * 			and both xComponents are equal and both yComponents are equal. 
+	 * 			| @see implementation
+	 */
+	@Override
+	public boolean equals(Object other) {
+		if (! (other instanceof Velocity))
+			return false;
+		Velocity otherAsVelocity= (Velocity)other;
+		return getxComponent() == otherAsVelocity.getxComponent() && getyComponent() == otherAsVelocity.getyComponent();
+	}
+	
+	@Override
+	public int hashCode() {
+		final int prime = 101;
+		int result = 1;
+		long temp;
+		temp = Double.doubleToLongBits(getxComponent());
+		result = prime * result + (int) (temp ^ (temp >>> 32));
+		temp = Double.doubleToLongBits(getyComponent());
+		result = prime * result + (int) (temp ^ (temp >>> 32));
+		return result;
+	}
+	
 }

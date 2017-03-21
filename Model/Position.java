@@ -1,4 +1,4 @@
-package asteroids.model.model;
+package asteroids.model.representation;
 
 import asteroids.model.exceptions.IllegalComponentException;
 
@@ -39,8 +39,7 @@ public class Position extends PhysicalVector {
 	 * Generate a copy of this Position object
 	 * @return a copy of this Position object.
 	 */
-	@Override
-	public Position clone() {
+	public Position copy() {
 		return new Position(getxComponent(), getyComponent());
 	}
 	
@@ -61,4 +60,32 @@ public class Position extends PhysicalVector {
 		return Math.hypot(pos1.getxComponent() - pos2.getxComponent(),
 				pos1.getyComponent() - pos2.getyComponent());
 	}
+	
+	
+	/**
+	 * Check whether this position is equal to the given object.
+	 * @return True iff other is an instance of the class Position, 
+	 * 			and both xComponents are equal and both yComponents are equal.
+	 * 			| @see implementation
+	 */
+	@Override
+	public boolean equals(Object other) {
+		if (! (other instanceof Position))
+			return false;
+		Position otherAsPosition = (Position)other;
+		return getxComponent() == otherAsPosition.getxComponent() && getyComponent() == otherAsPosition.getyComponent();
+	}
+	
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		long temp;
+		temp = Double.doubleToLongBits(getxComponent());
+		result = prime * result + (int) (temp ^ (temp >>> 32));
+		temp = Double.doubleToLongBits(getyComponent());
+		result = prime * result + (int) (temp ^ (temp >>> 32));
+		return result;
+	}
+	
 }

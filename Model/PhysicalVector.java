@@ -1,4 +1,4 @@
-package asteroids.model.model;
+package asteroids.model.representation;
 
 import asteroids.model.exceptions.IllegalComponentException;
 import be.kuleuven.cs.som.annotate.Basic;
@@ -18,6 +18,7 @@ import be.kuleuven.cs.som.annotate.Raw;
  */
 
 public abstract class PhysicalVector {
+
 
 	/**
 	 * Initialize this new physical vector with given xComponent and yComponent.
