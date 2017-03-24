@@ -9,18 +9,12 @@ import be.kuleuven.cs.som.annotate.*;
  * A class representing a circular space ship dealing with
  * position, velocity, orientation, radius, density, mass and total mass.
  * 
- * @invar  The position of each ship must be a valid position for any ship.
- *       | isValidPosition(getPosition())
  * @invar  The orientation of each ship must be a valid orientation for any ship.
  *       | isValidOrientation(getOrientation())
- * @invar  The radius of each ship must be a valid radius for any ship.
- *       | isValidRadius(this.getRadius())
  * @invar  The minimal radius of each ship must be a valid minimal radius for any ship.
  *       | isValidMinimalRadius(getMinimalRadius())
- * @invar  Each ship can have its velocity as velocity
- *       | canHaveAsVelocity(getVelocity())
- * @invar  Each ship can have its speed limit as speed limit .
- *       | canHaveAsSpeedLimit(this.getSpeedLimit())
+ * @invar  The thrusterForce for this ship is a valid thrusterForce for any ship.
+ *       | isValidThrusterForce(this.getThrusterForce())
  * 
  * @author Joris Ceulemans & Pieter Senden
  * @version 2.0
@@ -205,6 +199,7 @@ public class Ship extends Entity {
 	public boolean canHaveAsMass(double mass) {
 		return (mass >= getVolume() * getDensity());
 	}
+	
 	/**
 	 * Check whether this ship can have the given density as its density
 	 * @return True iff the given density is greater than or equal to the minimal density
@@ -225,23 +220,131 @@ public class Ship extends Entity {
 	
 	private final double minimalDensity;
 	
+	
+//	/**
+//	 * Initialize this new ship with given thrusterForce.
+//	 * 
+//	 * @param  force
+//	 *         The thrusterForce for this new ship.
+//	 * @post   If the given thrusterForce is a valid thrusterForce for any ship,
+//	 *         the thrusterForce of this new ship is equal to the given
+//	 *         thrusterForce. Otherwise, the thrusterForce of this new ship is equal
+//	 *         to 1.1e21.
+//	 *       | if (isValidThrusterForce(force))
+//	 *       |   then new.getThrusterForce() == force
+//	 *       |   else new.getThrusterForce() == 1.1e21
+//	 */
+//	public Ship(double force) {
+//		if (! isValidThrusterForce(force))
+//			force = 1.1e21;
+//		this.force = force;
+//	}
+	
 	/**
-	 * Change the velocity of this ship with a given amount.
+	 * Return the thruster force of this ship.
+	 */
+	@Basic @Raw
+	public double getThrusterForce() {
+		return this.thrusterForce;
+	}
+	
+	/**
+	 * Return the acceleration of this ship.
+	 * @return 0 if the thruster of this ship is not activated, and the quotient of this ship's thruster force and mass if the
+	 * 				thruster is activated
+	 * 			| if (hasThrusterActivated()) then result == getThrusterForce() / getMass()
+	 * 			|	else result == 0
+	 */
+	public double getAcceleration() {
+		if (hasThrusterActivated())
+			return getThrusterForce() / getMass();
+		else 
+			return 0;
+	}
+	
+	/**
+	 * Check whether this ship can have the given thruster force as its thrusterForce.
+	 *  
+	 * @param  force
+	 *         The thrusterForce to check.
+	 * @return 
+	 *       | result == (force >= 0)
+	*/
+	@Raw
+	public static boolean isValidThrusterForce(double force) {
+		return force >= 0;
+	}
+		
+	/**
+	 * Variable registering the thruster force of this ship.
+	 */
+	private double thrusterForce;
+	
+	
+	/**
+	 * Return the thruster status of this ship.
+	 */
+	@Basic @Raw
+	public boolean hasThrusterActivated() {
+		return thrusterStatus;
+	}
+	
+	/**
+	 * Set the thruster status of this ship to the given flag.
+	 * @param flag
+	 * 		the new thruster status of this ship.
+	 * @post The new thruster status of this ship is equal to the given flag.
+	 * 		| new.hasThrusterActivated() == flag
+	 */
+	@Raw
+	public void setThrust(boolean flag) {
+		thrusterStatus = flag;
+	}
+	
+	/**
+	 * Activate the thruster of this ship.
+	 * @effect The thruster status of this ship is set to true.
+	 * 			| setThrust(true)
+	 */
+	@Raw
+	public void thrustOn() {
+		setThrust(true);
+	}
+	
+	/**
+	 * Deactivate the thruster of this ship.
+	 * @effect The thruster status of this ship is set to false.
+	 * 			| setThrust(false)
+	 */
+	@Raw
+	public void thrustOff() {
+		setThrust(false);
+	}
+	
+	/**
+	 * A variable registering the thruster status of this ship.
+	 */
+	private boolean thrusterStatus;
+	
+	
+	/**
+	 * Change the velocity of this ship with during the given time interval.
 	 * 
-	 * @param amount
-	 * 		The amount to be added to the velocity.
-	 * @effect If amount is non-negative , the x component (resp. y component) of the new
+	 * @param duration
+	 * 		The length of the time interval over which the ship has to be accelerated.
+	 * @effect If duration is non-negative , the x component (resp. y component) of the new
 	 * 			velocity of this ship is set to the sum of the current component
-	 * 			plus amount times the cosine (resp. sine) of the orientation of this ship.
-	 * 			| if (amount >= 0)
-	 * 			|	then setVelocity(getVelocity().getxComponent() + amount * Math.cos(getOrientation()),
-	 * 			|						getVelocity().getyComponent() + amount * Math.sin(getOrientation()))
+	 * 			plus duration times acceleration of this ship times the cosine (resp. sine) of the orientation of this ship.
+	 * 			| if (duration >= 0)
+	 * 			|	then setVelocity(getVelocity().getxComponent() + duration * getAcceleration() * Math.cos(getOrientation()),
+	 * 			|						getVelocity().getyComponent() + duration * getAcceleration() * Math.sin(getOrientation()))
 	 * 			
 	 */
-	public void thrust(double amount) {
-		if (amount >= 0)
-			setVelocity(getVelocity().getxComponent() + amount * Math.cos(getOrientation()),
-					 	getVelocity().getyComponent() + amount * Math.sin(getOrientation()));
+	public void thrust(double duration) {
+		if (duration >= 0)
+			setVelocity(getVelocity().getxComponent() + duration * getAcceleration() * Math.cos(getOrientation()),
+					 	getVelocity().getyComponent() + duration * getAcceleration() * Math.sin(getOrientation()));
 	}
-
+	
+	
 }

@@ -10,10 +10,14 @@ import be.kuleuven.cs.som.annotate.*;
  *       	| canHaveAsPosition(getPosition())
  * @invar  Each entity can have its velocity as velocity.
  *       	| canHaveAsVelocity(getVelocity())
- * @invar  Each entity can have its density as density .
+ * @invar  Each entity can have its density as density.
  *       	| canHaveAsDensity(this.getDensity())
- * @invar  Each entity can have its mass as mass .
- *       	| canHaveAsMass(this.getMass())       
+ * @invar  Each entity can have its mass as mass.
+ *       	| canHaveAsMass(this.getMass())
+ * @invar  Each entity can have its radius as radius.
+ *       	| canHaveAsRadius(this.getRadius())
+ * @invar  The speed limit of this entity is a valid speed limit for any entity.
+ *     	    | isValidSpeedLimit(this.getSpeedLimit())
  * 
  * @author Joris Ceulemans & Pieter Senden
  * @version 2.0
