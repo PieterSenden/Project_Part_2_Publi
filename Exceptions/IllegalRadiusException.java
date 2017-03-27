@@ -1,4 +1,4 @@
-package asteroids.model;
+package asteroids.model.exceptions;
 
 /**
  * A class for signaling exceptions in radii.

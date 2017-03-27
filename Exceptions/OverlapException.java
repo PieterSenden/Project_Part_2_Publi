@@ -1,4 +1,4 @@
-package asteroids.model;
+package asteroids.model.exceptions;
 
 /**
  * A class for signaling the overlapping state of 2 ships.
