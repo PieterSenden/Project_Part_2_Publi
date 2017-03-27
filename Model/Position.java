@@ -1,6 +1,7 @@
 package asteroids.model.representation;
 
 import asteroids.model.exceptions.IllegalComponentException;
+import be.kuleuven.cs.som.annotate.Value;
 
 /**
  * A class representing the position of an entity.
@@ -13,6 +14,7 @@ import asteroids.model.exceptions.IllegalComponentException;
  * @invar  The yComponent of each position must be a valid yComponent for any position.
  *       | isValidComponent(getyComponent())
  */
+@Value
 public class Position extends PhysicalVector {
 	
 	/**
@@ -22,25 +24,14 @@ public class Position extends PhysicalVector {
 	 *         The xComponent for this new position.
 	 * @param  yComponent
 	 *         The yComponent for this new position.
-	 * @effect The xComponent of this new position is set to the given xComponent.
-	 *       | this.setxComponent(xComponent)
-	 * @effect The yComponent of this new position is set to the given yComponent.
-	 *       | this.setyComponent(yComponent)
+	 * @effect This new position is initialized as a physical vector with the given xComponent and yComponent.
+	 * 		 | @see implementation
 	 * @throws IllegalComponentException
 	 * 		   One of the given components is not valid.
 	 * 		 | ! isValidComponent(xComponent) || ! isValidComponent(yComponent)
 	 */
 	public Position(double xComponent, double yComponent) throws IllegalComponentException {
 		super(xComponent, yComponent);
-	}
-	
-	
-	/** 
-	 * Generate a copy of this Position object
-	 * @return a copy of this Position object.
-	 */
-	public Position copy() {
-		return new Position(getxComponent(), getyComponent());
 	}
 	
 	/**
@@ -76,6 +67,9 @@ public class Position extends PhysicalVector {
 		return getxComponent() == otherAsPosition.getxComponent() && getyComponent() == otherAsPosition.getyComponent();
 	}
 	
+	/**
+	 * Return the hash code for this position.
+	 */
 	@Override
 	public int hashCode() {
 		final int prime = 31;

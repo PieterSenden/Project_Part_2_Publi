@@ -86,7 +86,7 @@ public abstract class Entity {
 	public Position getPosition() {
 		if (this.position == null)
 			return null;
-		return this.position.copy();
+		return this.position;
 	}
 	
 	/**
@@ -155,10 +155,8 @@ public abstract class Entity {
 	 *         The new xComponent for the position for this entity.
 	 * @param  yComponent
 	 *         The new yComponent for the position for this entity.
-	 * @post   The xComponent of the position of this new entity is equal to the given xComponent.
-	 *       | new.getPosition().getxComponent() == xComponent
-	 * @post   The yComponent of the position of this new entity is equal to the given yComponent.
-	 *       | new.getPosition().getyComponent() == yComponent
+	 * @post   The position of this entity is equal to the position with given xComponent and yComponent.
+	 * 		 | new.getPosition().equals(new Position(xComponent, yComponent))
 	 * @throws IllegalComponentException
 	 * 		   One of the given components is not valid
 	 * 		 | ! Position.isValidComponent(xComponent) || ! Position.isValidComponent(yComponent)
@@ -167,12 +165,7 @@ public abstract class Entity {
 	 */
 	@Raw @Model
 	private void setPosition(double xComponent, double yComponent) throws IllegalComponentException, IllegalPositionException {
-		try {
-			this.position.setComponents(xComponent, yComponent);
-		}
-		catch(NullPointerException exc) {
-			this.position = new Position(xComponent, yComponent);
-		}
+		this.position = new Position(xComponent, yComponent);
 	}
 	
 	/**
@@ -189,7 +182,7 @@ public abstract class Entity {
 	public Velocity getVelocity() {
 		if (this.velocity == null)
 			return null;
-		return this.velocity.copy();
+		return this.velocity;
 	}
 	
 	/**
@@ -217,11 +210,9 @@ public abstract class Entity {
 	 * @param  yComponent
 	 *         The new yComponent for the velocity for this entity.
 	 * @post   If this entity can have the velocity with the given xComponent and  given yComponent as its velocity, 
-	 * 			then the xComponent of the velocity of this new entity is equal to the given xComponent,
-	 * 			and the yComponent of the velocity of this new entity is equal to the given yComponent.
+	 * 			then the new velocity of this entity is equal to the velocity with given xComponent and yComponent.
 	 *       | if (this.canHaveAsVelocity(new Velocity(xComponent,yComponent))
-	 *       | 		then (new.getVelocity().getxComponent() == xComponent)
-	 *       |			&& (new.getVelocity().getyComponent() == yComponent)
+	 *       | 		then new.getVelocity().equals(new Velocity(xComponent, yComponent))
 	 * @post   If this entity cannot have the velocity with the given xComponent and  given yComponent as its velocity,
 	 * 			the new velocity of this entity is set to a velocity such that the direction corresponds with the
 	 *			velocity with given xComponent and yComponent, but the speed is set to the speedLimit. More concretely,
@@ -237,7 +228,7 @@ public abstract class Entity {
 		if (this.getVelocity() == null)
 			this.velocity = new Velocity(0, 0);
 		if (this.canHaveAsVelocity(new Velocity(xComponent, yComponent)))
-			this.velocity.setVelocity(xComponent, yComponent);
+			this.velocity = new Velocity(xComponent, yComponent);
 		else {
 			double speed = Math.hypot(xComponent, yComponent);
 			this.velocity.setxComponent(xComponent * getSpeedLimit() / speed);
