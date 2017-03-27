@@ -141,31 +141,39 @@ public abstract class Entity {
 	 * 			| duration < 0
 	 */
 	public void move(double duration) throws IllegalArgumentException, IllegalComponentException {
-		if (duration < 0)
-			throw new IllegalArgumentException();
-		setPosition(getPosition().getxComponent() + duration * getVelocity().getxComponent(),
-				getPosition().getyComponent() + duration * getVelocity().getyComponent());
+		setPosition(xComponent, yComponent);
 	}
 	
 	
 	/**
-	 * Set the position of this entity to the given position.
+	 * Set the position of this entity to position with given components.
 	 * 
 	 * @param  xComponent
 	 *         The new xComponent for the position for this entity.
 	 * @param  yComponent
 	 *         The new yComponent for the position for this entity.
-	 * @post   The position of this entity is equal to the position with given xComponent and yComponent.
-	 * 		 | new.getPosition().equals(new Position(xComponent, yComponent))
-	 * @throws IllegalComponentException
-	 * 		   One of the given components is not valid
-	 * 		 | ! Position.isValidComponent(xComponent) || ! Position.isValidComponent(yComponent)
-	 * @throws IllegalPositionException
-	 * 		
+	 * @effect The position of this entity is set to the position with the given components.
+	 * 			| @see implementation
 	 */
 	@Raw @Model
 	private void setPosition(double xComponent, double yComponent) throws IllegalComponentException, IllegalPositionException {
-		this.position = new Position(xComponent, yComponent);
+		setPosition(new Position(xComponent, yComponent));
+	}
+	
+	/**
+	 * @param position
+	 * 			The new position for this entity.
+	 * @post The new position of this entity is equal to the given position.
+	 * 		 | new.getPosition().equals(position)
+	 * @throws IllegalComponentException
+	 * 			One of the given components is not valid
+	 * 		 | ! Position.isValidComponent(position.getxComponent()) ||
+	 * 		 |		! Position.isValidComponent(position.getyComponent())
+	 * @throws IllegalPositionException
+	 */
+	@Raw @Model
+	private void setPosition(Position position) throws IllegalComponentException, IllegalPositionException {
+		this.position = position;
 	}
 	
 	/**

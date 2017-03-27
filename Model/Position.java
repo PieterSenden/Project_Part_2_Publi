@@ -52,6 +52,26 @@ public class Position extends PhysicalVector {
 				pos1.getyComponent() - pos2.getyComponent());
 	}
 	
+	/**
+	 * Move this entity during a given time duration.
+	 * 
+	 * @param velocity
+	 * 			The velocity with which the object is moved.
+	 * @param duration
+	 * 			The length of the time interval during which the entity is moved.
+	 * @return A new position object which is the result of moving this position object
+	 * 			with the given velocity during the given duration  
+	 * 			| @see implementation 
+	 * @throws IllegalArgumentException
+	 * 			The given duration is strictly less than 0.
+	 * 			| duration < 0
+	 */
+	public Position move(Velocity velocity, double duration) throws IllegalComponentException, IllegalArgumentException {
+		if (duration < 0)
+			throw new IllegalArgumentException();
+		return new Position(getxComponent() + velocity.getxComponent() * duration,
+				getyComponent() + velocity.getyComponent() * duration);
+	}
 	
 	/**
 	 * Check whether this position is equal to the given object.
