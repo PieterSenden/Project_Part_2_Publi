@@ -1,7 +1,6 @@
 package asteroids.model.representation;
 
 import asteroids.model.exceptions.IllegalComponentException;
-import be.kuleuven.cs.som.annotate.Raw;
 import be.kuleuven.cs.som.annotate.Value;
 
 /**
@@ -25,69 +24,12 @@ public class Velocity extends PhysicalVector {
 	 *         The xComponent for this new velocity.
 	 * @param  yComponent
 	 *         The yComponent for this new velocity.
-	 * @effect The xComponent of this new velocity is set to the given xComponent.
-	 *       | this.setxComponent(xComponent)
-	 * @effect The yComponent of this new velocity is set to the given yComponent.
-	 *       | this.setyComponent(yComponent)
+	 * @effect This new velocity is initialized as a new physical vector with the given xComponent and yComponent.
+	 * 			| @see implementation
 	 */
-	public Velocity(double xComponent, double yComponent) {
+	public Velocity(double xComponent, double yComponent) throws IllegalComponentException {
 		super(xComponent, yComponent);
 	}
-	
-	
-//	/**
-//	 * Set the xComponent of this velocity to the given xComponent.
-//	 * 
-//	 * @param  xComponent
-//	 *         The new xComponent for this velocity.
-//	 * @post   If the given xComponent is valid, the xComponent of this new velocity is equal to the given xComponent.
-//	 *       | if (isValidComponent(xComponent))
-//	 *       |		then new.getxComponent() == xComponent
-//	 */
-//	@Raw
-//	public void setxComponent(double xComponent) {
-//		try {
-//			super.setxComponent(xComponent);
-//		}
-//		catch (IllegalComponentException exc) {
-//			;
-//		}
-//	}
-	
-//	/**
-//	 * Set the yComponent of this velocity to the given yComponent.
-//	 * 
-//	 * @param  yComponent
-//	 *         The new yComponent for this velocity.
-//	 * @post   If the given yComponent is valid, the yComponent of this new velocity is equal to the given yComponent.
-//	 *       | if (isValidComponent(yComponent))
-//	 *       |		then new.getyComponent() == yComponent
-//	 */
-//	@Raw
-//	public void setyComponent(double yComponent) {
-//		try {
-//			super.setyComponent(yComponent);
-//		}
-//		catch (IllegalComponentException exc) {
-//			;
-//		}
-//	}
-	
-//	/**
-//	 * Set the xComponent and yComponent of this velocity to the given xComponent and yComponent
-//	 * @param xComponent
-//	 * 			The new xComponent for this velocity.
-//	 * @param yComponent
-//	 * 			The new yComponent for this velocity.
-//	 * @effect The new xComponent of this velocity is set to the given xComponent.
-//	 * 			| setxComponent(xComponent)
-//	 * @effect The new yComponent of this velocity is set to the given yComponent.
-//	 * 			| setyComponent(yComponent)
-//	 */
-//	public void setVelocity(double xComponent, double yComponent) {
-//		setxComponent(xComponent);
-//		setyComponent(yComponent);
-//	}
 	
 	/**
 	 * Calculate the speed associated with this velocity 

@@ -53,7 +53,7 @@ public class Position extends PhysicalVector {
 	}
 	
 	/**
-	 * Move this entity during a given time duration.
+	 * Move this position during a given time duration and with a given velocity.
 	 * 
 	 * @param velocity
 	 * 			The velocity with which the object is moved.

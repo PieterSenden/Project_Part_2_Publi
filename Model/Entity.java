@@ -23,7 +23,7 @@ import be.kuleuven.cs.som.annotate.*;
  * @version 2.0
  */
 
-public abstract class Entity {
+abstract class Entity {
 	
 	/**
 	 * Initialize this new entity with given position, velocity, radius, density and mass.
@@ -89,6 +89,8 @@ public abstract class Entity {
 		return this.position;
 	}
 	
+	private static final double ACCURACY_FACTOR = 0.99;
+	
 	/**
 	 * Check whether the given position is a valid position for this entity.
 	 *  
@@ -132,16 +134,15 @@ public abstract class Entity {
 	 * 
 	 * @param duration
 	 * 			The length of the time interval during which the entity is moved.
-	 * @effect Each new component of the position of this entity is set to the sum of the old component
-	 * 			and the given duration times the corresponding component of the velocity of this entity.
-	 * 			| setPosition(getPosition().getxComponent() + duration * getVelocity().getxComponent(),
-	 * 			|				getPosition().getyComponent() + duration * getVelocity().getyComponent())
+	 * @effect The new position of this entity is set to the position that is th'e result of the position of this entity moved with
+	 * 			the velocity of this entity and during the given duration.
+	 * 			| @see implementation
 	 * @throws IllegalArgumentException
 	 * 			The given duration is strictly less than 0.
 	 * 			| duration < 0
 	 */
 	public void move(double duration) throws IllegalArgumentException, IllegalComponentException {
-		setPosition(xComponent, yComponent);
+		setPosition(getPosition().move(getVelocity(), duration));
 	}
 	
 	
@@ -170,9 +171,13 @@ public abstract class Entity {
 	 * 		 | ! Position.isValidComponent(position.getxComponent()) ||
 	 * 		 |		! Position.isValidComponent(position.getyComponent())
 	 * @throws IllegalPositionException
+	 * 			This entity cannot have this position as its position.
+	 * 		 | ! canHaveAsPosition(position)
 	 */
 	@Raw @Model
 	private void setPosition(Position position) throws IllegalComponentException, IllegalPositionException {
+		if (!canHaveAsPosition(position))
+			throw new IllegalPositionException();
 		this.position = position;
 	}
 	
@@ -180,7 +185,6 @@ public abstract class Entity {
 	 * Variable registering the position of this entity.
 	 */
 	private Position position;
-	private static final double ACCURACY_FACTOR = 0.99;
 	
 	
 	/**
@@ -221,27 +225,43 @@ public abstract class Entity {
 	 * 			then the new velocity of this entity is equal to the velocity with given xComponent and yComponent.
 	 *       | if (this.canHaveAsVelocity(new Velocity(xComponent,yComponent))
 	 *       | 		then new.getVelocity().equals(new Velocity(xComponent, yComponent))
-	 * @post   If this entity cannot have the velocity with the given xComponent and  given yComponent as its velocity,
-	 * 			the new velocity of this entity is set to a velocity such that the direction corresponds with the
-	 *			velocity with given xComponent and yComponent, but the speed is set to the speedLimit. More concretely,
-	 *			the xComponent of the new velocity of this entity is set to (xComponent * getSpeedLimit() / speed) and the
+	 * @post   If this entity cannot have the velocity with the given xComponent and  given yComponent as its velocity, and
+	 * 			the given xComponent and yComponent are valid components for any physical vector, then the new velocity of this entity 
+	 * 			is equal to a velocity such that the direction corresponds with the velocity with given xComponent and yComponent,
+	 * 			but the speed is set to the speedLimit.
+	 * 			More concretely, the xComponent of the new velocity of this entity is set to (xComponent * getSpeedLimit() / speed) and the
 	 *			yComponent of the new velocity of this entity is set to (yComponent * getSpeedLimit() / speed), where
 	 *			speed is the speed corresponding to the velocity with given xComponent and yComponent.
-	 *		 | if (! this.canHaveAsVelocity(new Velocity(xComponent, yComponent))
+	 *		 | if (PhysicalVector.isValidComponent(xComponent) && PhysicalVector.isValidComponent(yComponent) &&
+	 *		 |			 ! this.canHaveAsVelocity(new Velocity(xComponent, yComponent))
 	 *		 | 		then (new.getVelocity().getxComponent() == xComponent * getSpeedLimit / Math.hypot(xComponent, yComponent))
 	 *		 |			&& (new.getVelocity().getyComponent() == yComponent * getSpeedLimit / Math.hypot(xComponent, yComponent))
+	 * @post	If the current velocity of this entity is not effective and the given xComponent or yComponent are valid components
+	 * 			for any physical vector, then the new velocity of this entity is equal to a velocity with 0 as its xComponent an yComponent.
+	 * 		 | if (getVelocity() == null && (!PhysicalVector.isValidComponent(xComponent) || !PhysicalVector.isValidComponent(xyComponent))
+	 * 		 |		then new.getVelocity().equals(new Velocity(0, 0)
 	 */
 	@Raw @Model
 	protected void setVelocity(double xComponent, double yComponent) {
-		if (this.getVelocity() == null)
-			this.velocity = new Velocity(0, 0);
-		if (this.canHaveAsVelocity(new Velocity(xComponent, yComponent)))
-			this.velocity = new Velocity(xComponent, yComponent);
-		else {
-			double speed = Math.hypot(xComponent, yComponent);
-			this.velocity.setxComponent(xComponent * getSpeedLimit() / speed);
-			this.velocity.setyComponent(yComponent * getSpeedLimit() / speed);
+		Velocity tempVelocity;
+		try {
+			tempVelocity = new Velocity(xComponent, yComponent);
 		}
+		catch(IllegalComponentException exc) {
+			if (getVelocity() == null)
+				tempVelocity = new Velocity(0, 0);
+			else
+				tempVelocity = getVelocity();
+		}
+		if (!canHaveAsVelocity(tempVelocity)) {
+			double speed = tempVelocity.getSpeed();
+			xComponent = xComponent * getSpeedLimit() / speed;
+			yComponent = yComponent * getSpeedLimit() / speed;
+			tempVelocity = new Velocity(xComponent, yComponent);
+			//No exceptions are thrown here, because if xComponent or yComponent would be an invalid component, an exception would already
+			//have been thrown and caught such that canHaveAsVelocity(tempVelocity) is always true.
+		}
+		this.velocity = tempVelocity;
 	}
 	
 	/**
@@ -283,27 +303,6 @@ public abstract class Entity {
 	public static final double SPEED_OF_LIGHT = 300000;
 	
 	
-
-//	/**
-//	 * Initialize this new entity with given mass.
-//	 * 
-//	 * @param  mass
-//	 *         The mass for this new entity.
-//	 * @post   If the given mass is a valid mass for any entity,
-//	 *         the mass of this new entity is equal to the given
-//	 *         mass. Otherwise, the mass of this new entity is equal
-//	 *         to getVolume() * getDensity().
-//	 *       | if (isValidMass(mass))
-//	 *       |   then new.getMass() == mass
-//	 *       |   else new.getMass() == getVolume() * getDensity()
-//	 */
-//	public Entity(double mass) {
-//		if (! canHaveAsMass(mass))
-//			mass = getVolume();
-//		this.mass = mass;
-//	}
-	
-	
 	/**
 	 * Return the mass of this entity.
 	 */
@@ -343,27 +342,7 @@ public abstract class Entity {
 	 * Variable registering the mass of this entity.
 	 */
 	private double mass;
-
-
-
-//	/**
-//	 * Initialize this new entity with given density.
-//	 * 
-//	 * @param  density
-//	 *         The density for this new entity.
-//	 * @post   If the given density is a valid density for any entity,
-//	 *         the density of this new entity is equal to the given
-//	 *         density. Otherwise, the density of this new entity is equal
-//	 *         to default_value_Java.
-//	 *       | if (isValidDensity(density))
-//	 *       |   then new.getDensity() == density
-//	 *       |   else new.getDensity() == getMinimalDensity()
-//	 */
-//	public Entity(double density) {
-//		if (! canHaveAsDensity(density))
-//			density = getMinimalDensity();
-//		this.density = density;
-//	}
+	
 	
 	/**
 	 * Return the density of this entity.
@@ -407,6 +386,24 @@ public abstract class Entity {
 	}
 	
 	/**
+	 * Calculate the sum of the radii of the two given entities.
+	 * 
+	 * @param entity1
+	 * 			The first entity
+	 * @param entity2
+	 * 			The second entity
+	 * @return The sum of the radii of the two entities, if both are effective.
+	 * 			| If ((entity1 != null) && (entity2!= null))
+	 * 			|	then result == entity1.getRadius() + entity2.getRadius()
+	 * @throws NullPointerException
+	 * 			One of the entities is not effective
+	 * 			| (entity1 == null) || (entity2 == null)
+	 */
+	public static double getSumOfRadii(Entity entity1, Entity entity2) throws NullPointerException {
+		return entity1.getRadius() + entity2.getRadius();
+	}
+	
+	/**
 	 * Check whether this entity can have the given radius as radius.
 	 *  
 	 * @param  radius
@@ -434,6 +431,23 @@ public abstract class Entity {
 	
 	
 	/**
+	 * Calculate the distance between the centres of two entities
+	 * @param entity1
+	 * 			The first entity
+	 * @param entity2
+	 * 			The second entity
+	 * @return If the two entities are effective, the distance between the centres of the two entities.
+	 * 			| If ((entity1 != null) && (entity2!= null))
+	 * 			|	then result == Position.getDistanceBetween(entity1.getPosition(), entity2.getPosition())
+	 * @throws NullPointerException
+	 * 			One of the entities is not effective
+	 * 			| (entity1 == null) || (entity2 == null)
+	 */
+	public static double getDistanceBetweenCentres(Entity entity1, Entity entity2) throws NullPointerException {
+		return Position.getDistanceBetween(entity1.getPosition(), entity2.getPosition());
+	}
+	
+	/**
 	 * Calculate the distance between two entities
 	 * @param entity1
 	 * 			The first entity
@@ -442,7 +456,7 @@ public abstract class Entity {
 	 * @return If the two entities are effective and different, the distance between the two entities (i.e. the distance
 	 * 				between the two centres minus the sum of their radii).
 	 * 			| If ((entity1 != null) && (entity2!= null) && (entity1 != entity2))
-	 * 			|	then result == Position.getDistanceBetween(entity1.getPosition(), entity2.getPosition()) - (entity1.getRadius() + entity2.getRadius())
+	 * 			|	then result == getDistanceBetweenCentres(entity1, entity2) - getSumOfRadii(entity1, entity2)
 	 * @return If the two entities are effective and identical, zero.
 	 * 			| If ((entity1 != null) && (entity1 == entity2))
 	 * 			|	then result == 0
@@ -453,7 +467,7 @@ public abstract class Entity {
 	public static double getDistanceBetween(Entity entity1, Entity entity2) throws NullPointerException{
 		if ((entity1 != null) && (entity1 == entity2))
 			return 0;
-		return Position.getDistanceBetween(entity1.getPosition(), entity2.getPosition()) - (entity1.getRadius() + entity2.getRadius());
+		return getDistanceBetweenCentres(entity1, entity2) - getSumOfRadii(entity1, entity2);
 	}
 	
 	/**
@@ -462,9 +476,11 @@ public abstract class Entity {
 	 * 			The first entity
 	 * @param entity2
 	 * 			The second entity
-	 * @return If the two entities are effective and different, true iff the distance between the two entities is non-positive.
+	 * @return If the two entities are effective and different, true iff the distance between their two centres is less than or equal
+	 * 			to ACCURACY_FACTOR times the sum of their radii.
 	 * 			| If ((entity1 != null) && (entity2!= null) && (entity1 != entity2))
-	 * 			|	then result == (Entity.getDistanceBetween(entity1, entity2) <= 0)
+	 * 			|	then result == (Entity.getDistanceBetween(entity1, entity2) <= (ACCURACY_FACTOR - 1) * (entity1.getRadius() +
+	 * 			|																								 entity2.getRadius())
 	 * @return If the two entities are effective and identical, true.
 	 * 			| If ((entity1 != null) && (entity1 == entity2))
 	 * 			|	then result == true
@@ -473,16 +489,22 @@ public abstract class Entity {
 	 * 			| (entity1 == null) || (entity2 == null)
 	 */
 	public static boolean overlap(Entity entity1, Entity entity2) throws NullPointerException {
-		return (Entity.getDistanceBetween(entity1, entity2) <= 0);
+		if (entity1 != null && entity1 == entity2)
+			return true;
+		return (Entity.getDistanceBetween(entity1, entity2) <= (ACCURACY_FACTOR - 1) * (entity1.getRadius() + entity2.getRadius()));
 	}
 	
 	/**
 	 * Determine the time after which, if ever, two entities will collide.
 	 * @param entity1
-	 * 			The fist entity
+	 * 			The first entity
 	 * @param entity2
 	 * 			The second entity
-	 * @return If both entities are effective and different, the result satisfies the following conditions:
+	 * @return If both entities are effective, different and are associated to the same effective world
+	 * 			| if ((entity1 != null) && (entity2!= null) && (entity1 != entity2) && (entity1.getWorld() != null) 
+	 * 			|																	&& (entity1.getWorld() == entity2.getWorld()))
+	 * 			|	then apparentlyCollide(entity1.getPosition().move(entity1.getVelocity(), result), entity2.getPosition
+	 * If both entities are effective and different, the result satisfies the following conditions:
 	 * 			1.	After both entities are moved during the returned duration, they will overlap.
 	 * 			| if  ((entity1 != null) && (entity2!= null) && (entity1 != entity2))
 	 * 			| 	then (overlap(entity1, entity2)) is true after the execution of the following code snippet:

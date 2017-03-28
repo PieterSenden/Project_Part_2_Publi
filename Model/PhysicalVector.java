@@ -18,7 +18,7 @@ import be.kuleuven.cs.som.annotate.Value;
  * @author Joris Ceulemans & Pieter Senden
  */
 @Value
-public abstract class PhysicalVector {
+abstract class PhysicalVector {
 
 
 	/**
