@@ -4,7 +4,7 @@
   <element>
     <id>UMLClass</id>
     <coordinates>
-      <x>154</x>
+      <x>220</x>
       <y>352</y>
       <w>110</w>
       <h>143</h>
@@ -24,7 +24,7 @@ evolve()
   <element>
     <id>UMLClass</id>
     <coordinates>
-      <x>836</x>
+      <x>902</x>
       <y>759</y>
       <w>88</w>
       <h>143</h>
@@ -38,7 +38,7 @@ isFired
   <element>
     <id>UMLClass</id>
     <coordinates>
-      <x>341</x>
+      <x>407</x>
       <y>770</y>
       <w>209</w>
       <h>176</h>
@@ -58,7 +58,7 @@ thrustOff()</panel_attributes>
   <element>
     <id>UMLClass</id>
     <coordinates>
-      <x>682</x>
+      <x>748</x>
       <y>473</y>
       <w>220</w>
       <h>231</h>
@@ -81,7 +81,7 @@ getCollisionPosition()
   <element>
     <id>UMLClass</id>
     <coordinates>
-      <x>825</x>
+      <x>891</x>
       <y>242</y>
       <w>176</w>
       <h>99</h>
@@ -96,7 +96,7 @@ getDistanceBetween()</panel_attributes>
   <element>
     <id>UMLClass</id>
     <coordinates>
-      <x>572</x>
+      <x>638</x>
       <y>242</y>
       <w>165</w>
       <h>99</h>
@@ -111,7 +111,7 @@ getSpeed()</panel_attributes>
   <element>
     <id>UMLClass</id>
     <coordinates>
-      <x>704</x>
+      <x>770</x>
       <y>0</y>
       <w>165</w>
       <h>110</h>
@@ -128,7 +128,7 @@ getAsArray()</panel_attributes>
   <element>
     <id>Relation</id>
     <coordinates>
-      <x>484</x>
+      <x>550</x>
       <y>693</y>
       <w>319</w>
       <h>99</h>
@@ -139,7 +139,7 @@ getAsArray()</panel_attributes>
   <element>
     <id>Relation</id>
     <coordinates>
-      <x>770</x>
+      <x>836</x>
       <y>693</y>
       <w>132</w>
       <h>88</h>
@@ -150,7 +150,7 @@ getAsArray()</panel_attributes>
   <element>
     <id>Relation</id>
     <coordinates>
-      <x>759</x>
+      <x>825</x>
       <y>99</y>
       <w>143</w>
       <h>165</h>
@@ -161,7 +161,7 @@ getAsArray()</panel_attributes>
   <element>
     <id>Relation</id>
     <coordinates>
-      <x>671</x>
+      <x>737</x>
       <y>99</y>
       <w>121</w>
       <h>165</h>
@@ -172,7 +172,7 @@ getAsArray()</panel_attributes>
   <element>
     <id>Relation</id>
     <coordinates>
-      <x>253</x>
+      <x>319</x>
       <y>352</y>
       <w>451</w>
       <h>165</h>
@@ -186,7 +186,7 @@ contains &gt;</panel_attributes>
   <element>
     <id>Relation</id>
     <coordinates>
-      <x>671</x>
+      <x>737</x>
       <y>330</y>
       <w>110</w>
       <h>165</h>
@@ -198,7 +198,7 @@ m1=1</panel_attributes>
   <element>
     <id>Relation</id>
     <coordinates>
-      <x>792</x>
+      <x>858</x>
       <y>330</y>
       <w>110</w>
       <h>165</h>
@@ -210,7 +210,7 @@ m1=1</panel_attributes>
   <element>
     <id>Relation</id>
     <coordinates>
-      <x>539</x>
+      <x>605</x>
       <y>814</y>
       <w>319</w>
       <h>88</h>
@@ -223,18 +223,5 @@ m2=0..*
 contains/has fired &gt;
 </panel_attributes>
     <additional_attributes>10.0;20.0;270.0;20.0</additional_attributes>
-  </element>
-  <element>
-    <id>UMLNote</id>
-    <coordinates>
-      <x>572</x>
-      <y>880</y>
-      <w>242</w>
-      <h>77</h>
-    </coordinates>
-    <panel_attributes>A bullet is either associated
-with a world or a ship.
-bg=#abcdef</panel_attributes>
-    <additional_attributes/>
   </element>
 </diagram>
