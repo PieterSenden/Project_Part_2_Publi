@@ -380,7 +380,7 @@ public class Ship extends Entity {
 	/**
 	 * Add the given bullet to the magazine of this ship.
 	 * @param bullet
-	 * 		The bullet to be added to this ship.
+	 * 		The bullet to be added to the magazine of this ship.
 	 * @post If this ship can have the given bullet as bullet, then the bullet is added to the magazine of this ship.
 	 * 		| if (canHaveAsBullet(bullet))
 	 * 		|	then hasLoadedInMagazine(bullet)
@@ -388,10 +388,33 @@ public class Ship extends Entity {
 	 * 		This ship cannot have the given bullet as bullet.
 	 * 		| ! canHaveAsBullet(bullet)
 	 */
+	@Raw
 	private void addAsLoadedBullet(@Raw Bullet bullet) throws IllegalBulletException {
 		if (! canHaveAsBullet(bullet))
 			throw new IllegalBulletException();
 		this.magazine.add(bullet);
+	}
+	
+	/**
+	 * Remove the given bullet from the magazine of this ship.
+	 * @param bullet
+	 * 		The bullet to remove from the magazine of this ship.
+	 * @post If the given bullet is effective and is loaded on this ship, then
+	 * 			the given bullet is removed from the magazine of this ship.
+	 * 		| if (bullet != null && hasLoadedInMagazine(bullet))
+	 * 		|	then ! hasLoadedInMagazine(bullet)
+	 * @throws IllegalBulletException
+	 * 			The given bullet is not loaded on this ship.
+	 * 		| ! hasLoadedInMagazine(bullet)
+	 * @throws NullPointerException
+	 * 			The given bullet is not effective.
+	 * 		| bullet == null
+	 */
+	@Raw
+	void removeAsLoadedBullet(Bullet bullet) throws IllegalBulletException, NullPointerException {
+		if (! hasLoadedInMagazine(bullet))
+			throw new IllegalBulletException();
+		this.magazine.remove(bullet);
 	}
 	
 	
@@ -403,6 +426,45 @@ public class Ship extends Entity {
 		return firedBullets.contains(bullet);
 	}
 	
+	/**
+	 * Add the given bullet to the collection of fired bullets of this ship.
+	 * @param bullet
+	 * 		The bullet to be added to the collection of fired bullets of this ship.
+	 * @post If this ship can have the given bullet as bullet, then the bullet is added to the collection of fired bullets of this ship.
+	 * 		| if (canHaveAsBullet(bullet))
+	 * 		|	then hasFired(bullet)
+	 * @throws IllegalBulletException
+	 * 		This ship cannot have the given bullet as bullet.
+	 * 		| ! canHaveAsBullet(bullet)
+	 */
+	@Raw
+	private void addAsFiredBullet(@Raw Bullet bullet) throws IllegalBulletException {
+		if (! canHaveAsBullet(bullet))
+			throw new IllegalBulletException();
+		this.firedBullets.add(bullet);
+	}
+	
+	/**
+	 * Remove the given bullet from the collection of fired bullets of this ship.
+	 * @param bullet
+	 * 		The bullet to remove the collection of fired bullets of this ship.
+	 * @post If the given bullet is effective and has been fired by this ship, then
+	 * 			the given bullet is removed from the collection of fired bullets of this ship.
+	 * 		| if (bullet != null && hasFired(bullet))
+	 * 		|	then ! hasFired(bullet)
+	 * @throws IllegalBulletException
+	 * 			The given bullet has not been fired by this ship.
+	 * 		| ! hasFired(bullet)
+	 * @throws NullPointerException
+	 * 			The given bullet is not effective.
+	 * 		| bullet == null
+	 */
+	@Raw
+	void removeAsFiredBullet(Bullet bullet) throws IllegalBulletException, NullPointerException {
+		if (! hasFired(bullet))
+			throw new IllegalBulletException();
+		this.firedBullets.remove(bullet);
+	}
 	
 	/**
 	 * Check whether this ship is associated to the given bullet.
@@ -478,22 +540,35 @@ public class Ship extends Entity {
 	
 	/**
 	 * Fire a bullet from the magazine of this ship.
-	 * @post If the magazine of this ship is not empty, then a random bullet randomBullet is removed from the magazine
+	 * @post If the magazine of this ship is not empty and this ship is contained in a world,
+	 * 			then a random bullet randomBullet is removed from the magazine
 	 * 			and added to the world containing this ship, if any, and hasFired(randomBullet) is true.
-	 * 		| if (getNbOfBulletsInMagazine() != 0)
+	 * 		| if (getNbOfBulletsInMagazine() != 0 && getWorld() != null)
 	 * 		|	then for precisely one bullet in getMagazine():
 	 * 		|		hasFired((new bullet)) && ! hasLoadedInMagazine((new bullet))
 	 * @effect If the magazine of this ship is not empty, said random bullet is set to fire configuration.
 	 * 		| randomBullet.setToFireConfiguration() 
 	 */
 	public void fireBullet() {
-		if ( getNbOfBulletsInMagazine() != 0 ){
+		if ( getNbOfBulletsInMagazine() != 0 && getWorld() != null){
 			Bullet bulletToFire = (Bullet)getMagazine().toArray()[0];
 			bulletToFire.setToFireConfiguration();
-			
+			removeAsLoadedBullet(bulletToFire);
+			addAsFiredBullet(bulletToFire);
 		}
 	}
 	
+	/**
+	 * Load a bullet in the magazine of this ship.
+	 * @param bullet
+	 * 		The bullet to be loaded in the magazine this ship.
+	 * 
+	 */
+	public void loadBullet(Bullet bullet) {
+		if (! canHaveAsBullet(bullet) && ! surroundsEntity(bullet))
+			throw new IllegalBulletException();
+		
+	}
 	
 	/**
 	 * Set representing the bullets loaded on this ship.

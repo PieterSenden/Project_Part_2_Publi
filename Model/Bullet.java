@@ -168,7 +168,7 @@ public class Bullet extends Entity {
 	
 	/**
 	 * Set this bullet to fire configuration.
-	 * @post | if (getShip() != null)
+	 * @post | if (getShip() != null && getShip().hasLoadedInMagazine(this))
 	 * 		 | 	then Entity.getDistanceBetweenCentres(new, getShip()) == (1 + 5 * (1 - ACCURACY_FACTOR)) * Entity.getSumOfRadii(this, getShip())
 	 * 		 | 		&& (new.getPosition().getyComponent() - getShip().getPosition().getyComponent() ==
 	 * 		 |			Math.tan(getShip().getOrientation()) * ((new.getPosition().getxComponent() - getShip().getPosition().getxComponent() )
@@ -185,8 +185,39 @@ public class Bullet extends Entity {
 			setVelocity(250 * Math.cos(angle), 250 * Math.sin(angle));
 		}
 	}
-	void setShip(Ship ship) {
-		
+	
+	/**
+	 * Set this bullet to the load configuration.
+	 * @post | if (getShip() != null)
+	 * 		 | 	then new.getPosition().equals(new Position(0, 0)) &&
+	 * 		 |			new.getVelocity().equals(new Velocity(0, 0))
+	 * @note This method must only be invoked in the method loadBullet() of the class Ship
+	 */
+	void setToLoadConfiguration() {
+		if (getShip() != null && getShip().hasLoadedInMagazine(this)) {
+			setPosition(0, 0);
+			setVelocity(0, 0);
+		}
+	}
+	
+	/**
+	 * Set the ship of this bullet to the given ship.
+	 * @param ship
+	 * 		The new ship for this bullet.
+	 * @post | if ( (ship == null && (getShip() == null || ! getShip().hasAsBullet(this))))
+	 * 		 | 	then new.getShip() == ship
+	 * @post | if (ship != null && ship.hasAsBullet(this))
+	 * 		 |	then new.getShip() == ship
+	 * @throws IllegalMethodCallException
+	 * 			| ( ( ship != null && ! ship.hasAsBullet(this)) ||
+	 * 		   	|	(ship == null && getShip() != null && getShip().hasAsBullet(this))
+	 */
+	@Raw
+	void setShip(Ship ship) throws IllegalMethodCallException {
+		if (( ship != null && ! ship.hasAsBullet(this)) ||
+				(ship == null && getShip() != null && getShip().hasAsBullet(this)))
+			throw new IllegalMethodCallException();
+		this.ship = ship;
 	}
 	
 	private Ship ship;
