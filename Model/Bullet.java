@@ -1,15 +1,19 @@
 package asteroids.model.representation;
 
-import asteroids.model.exceptions.IllegalComponentException;
-import asteroids.model.exceptions.IllegalPositionException;
-import asteroids.model.exceptions.IllegalRadiusException;
-import be.kuleuven.cs.som.annotate.Basic;
+import asteroids.model.exceptions.*;
+import be.kuleuven.cs.som.annotate.*;
 
 /**
  * A class representing a circular bullet dealing with
  * position, velocity, radius, density, and mass.
  * @invar  The minimal radius of each bullet must be a valid minimal radius for any bullet.
  *       | isValidMinimalRadius(getMinimalRadius())
+ * @invar Each bullet must have a proper ship.
+ * 		 | hasProperShip()
+ * @note In this class, when we state 'this bullet is associated to a ship', we mean that
+ * 			the bullet is either loaded in the magazine of the ship or has been fired by the ship.
+ * 			In the former case, the bullet is not associated to a world. In the latter case,
+ * 			it is associated to a world.
  */
 
 public class Bullet extends Entity {
@@ -111,4 +115,79 @@ public class Bullet extends Entity {
 	 * Variable registering the minimal radius of this bullet.
 	 */
 	private static double minimalRadius = 1;
+	
+	/**
+	 * Return the ship associated to this bullet, i.e. the ship that holds this bullet or fired it.
+	 */
+	@Basic
+	public Ship getShip() {
+		return this.ship;
+	}
+	
+	
+	/**
+	 * Check whether this bullet can be associated to the given ship.
+	 * @param ship
+	 * 		The ship to check.
+	 * @return 
+	 * 			| result == ((ship == null) || ship.canHaveAsBullet(this)) 
+	 */
+	@Raw
+	public boolean canHaveAsShip(Ship ship) {
+		return ((ship == null) || ship.canHaveAsBullet(this));
+	}
+	
+	/**
+	 * Check whether this bullet has a proper ship.
+	 * @return 
+	 * 			| if (canHaveAsShip(getShip())
+	 * 			|	if (getShip() == null)
+	 * 			|		then result == true
+	 * 			|	else if (getWorld() == null)
+	 * 			|		then result == getShip().hasLoadedInMagazine(this)
+	 * 			|	else if (getWorld() == getShip().getWorld())
+	 * 			|		then result == getShip().hasFired(this)
+	 * 			| else
+	 * 			|	then result == false
+	 */
+	@Raw
+	public boolean hasProperShip() {
+		if (! canHaveAsShip(getShip()) )
+			return false;
+		else if (getShip() == null)
+			return true;
+		else if (getWorld() == null)
+			// This bullet must be loaded on its ship.
+			return getShip().hasLoadedInMagazine(this);
+		else
+			// This bullet must have been fired by its ship.
+			// Because if canHaveAsShip() is true, getShip() != null and getWorld() != null
+			// it must hold that (getWorld() == getShip().getWorld())
+			return getShip().hasFired(this);
+	}
+	
+	/**
+	 * Set this bullet to fire configuration.
+	 * @post | if (getShip() != null)
+	 * 		 | 	then Entity.getDistanceBetweenCentres(new, getShip()) == (1 + 5 * (1 - ACCURACY_FACTOR)) * Entity.getSumOfRadii(this, getShip())
+	 * 		 | 		&& (new.getPosition().getyComponent() - getShip().getPosition().getyComponent() ==
+	 * 		 |			Math.tan(getShip().getOrientation()) * ((new.getPosition().getxComponent() - getShip().getPosition().getxComponent() )
+	 * 		 |		&& (new.getVelocity().getSpeed() == 250 && new.getVelocity().getyComponent() ==
+	 * 		 |			Math.tan(getShip().getOrientation()) * new.getVelocity().getxComponent()
+	 * @note This method must only be invoked in the method fireBullet() of the class Ship
+	 */
+	void setToFireConfiguration() {
+		if (getShip() != null && getShip().hasLoadedInMagazine(this)) {
+			double newDistanceBetweenCentres = (1 + 5 * (1 - ACCURACY_FACTOR)) * Entity.getSumOfRadii(this, getShip());
+			double angle = getShip().getOrientation();
+			setPosition(getShip().getPosition().getxComponent() + newDistanceBetweenCentres * Math.cos(angle),
+					getShip().getPosition().getyComponent() + newDistanceBetweenCentres * Math.sin(angle));
+			setVelocity(250 * Math.cos(angle), 250 * Math.sin(angle));
+		}
+	}
+	void setShip(Ship ship) {
+		
+	}
+	
+	private Ship ship;
 }

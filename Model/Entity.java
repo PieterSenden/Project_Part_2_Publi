@@ -89,7 +89,7 @@ abstract class Entity {
 		return this.position;
 	}
 	
-	private static final double ACCURACY_FACTOR = 0.99;
+	public static final double ACCURACY_FACTOR = 0.99;
 	
 	/**
 	 * Check whether the given position is a valid position for this entity.
@@ -158,7 +158,8 @@ abstract class Entity {
 	 * 			| @see implementation
 	 */
 	@Raw @Model
-	private void setPosition(double xComponent, double yComponent) throws IllegalComponentException, IllegalPositionException {
+	protected
+	void setPosition(double xComponent, double yComponent) throws IllegalComponentException, IllegalPositionException {
 		setPosition(new Position(xComponent, yComponent));
 	}
 	
@@ -176,7 +177,7 @@ abstract class Entity {
 	 * 		 | ! canHaveAsPosition(position)
 	 */
 	@Raw @Model
-	private void setPosition(Position position) throws IllegalComponentException, IllegalPositionException {
+	protected void setPosition(Position position) throws IllegalComponentException, IllegalPositionException {
 		if (!canHaveAsPosition(position))
 			throw new IllegalPositionException();
 		this.position = position;
@@ -496,7 +497,7 @@ abstract class Entity {
 	}
 	
 	/**
-	 * Check whether 2 entities apparently collide.
+	 * Check whether two entities apparently collide.
 	 * @param entity1
 	 * 			The first entity
 	 * @param entity2
@@ -506,7 +507,7 @@ abstract class Entity {
 	 * 			|																					 entity1.getWorld() != entity2.getWorld())
 	 * 			|	then result == false.
 	 * @return true if both entities are effective and associated to the same world and if the distance between the centres of the entities
-	 * 			lies within the range determined by the sum of their radii multiplied with ACCURACY_FACTOR and 2 - ACCURACY_FACTOR respecively.
+	 * 			lies within the range determined by the sum of their radii multiplied with ACCURACY_FACTOR and 2 - ACCURACY_FACTOR respectively.
 	 * 			| if ((entity1 != null) && (entity2!= null) && (entity1 != entity2) && (entity1.getWorld() != null) 
 	 * 			|																	&& (entity1.getWorld() == entity2.getWorld()))
 	 * 			|	then result == (ACCURACY_FACTOR * getSumOfRadii(entity1, entity2) <= getDistanceBetweenCentres(entity1, entity2)) &&
@@ -521,7 +522,7 @@ abstract class Entity {
 	}
 	
 	/**
-	 * Check whether 2 entities will apparently collide if they are moved during a certain duration.
+	 * Check whether two entities will apparently collide if they are moved during a certain duration.
 	 * @param entity1
 	 * 			The first entity
 	 * @param entity2
@@ -542,7 +543,7 @@ abstract class Entity {
 	 * 			|											 entity2.getPosition().move(entity2.getVelocity(), duration))) &&
 				|		(Position.getDistanceBetween(entity1.getPosition().move(entity1.getVelocity(), duration),
 	 * 			|											 entity2.getPosition().move(entity2.getVelocity(), duration)) <= 
-	 * 			|		(2 - ACCURACY_FACTOR) * getSumOfRadii(entity1, entity2));
+	 * 			|		(2 - ACCURACY_FACTOR) * getSumOfRadii(entity1, entity2))
 	 */
 	public static boolean apparentlyCollideAfterMove(Entity entity1, Entity entity2, double duration) {
 		if (entity1 == null || entity2 == null || entity1.getWorld() == null || entity2.getWorld() == null ||
@@ -567,18 +568,6 @@ abstract class Entity {
 	 * 			|																	&& (entity1.getWorld() == entity2.getWorld()))
 	 * 			|	then apparentlyCollideAfterMove(entity1, entity2, result) &&
 	 * 			|		( for each t in { x in Real Numbers | 0 <= x < result } : !apparentlyCollideAfterMove(entity1, entity2, t)
-//	 * If both entities are effective and different, the result satisfies the following conditions:
-//	 * 			1.	After both entities are moved during the returned duration, they will overlap.
-//	 * 			| if  ((entity1 != null) && (entity2!= null) && (entity1 != entity2))
-//	 * 			| 	then (overlap(entity1, entity2)) is true after the execution of the following code snippet:
-//	 * 			|			entity1.move(result);
-//	 * 			|			entity2.move(result);
-//	 * 			2.	After both entities are moved during a positive time less than the returned duration, they will not overlap.
-//	 * 			| if  ((entity1 != null) && (entity2!= null) && (entity1 != entity2))
-//	 * 			|	then for each duration in { time in the real numbers | 0 <= time < result}, 
-//	 * 			|		(overlap(entity1, entity2)) is false after the execution of the following code snippet:
-//	 * 			|			entity1.move(duration);
-//	 * 			|			entity2.move(duration);
 	 * @throws NullPointerException
 	 * 			One of the entities is non-effective.
 	 * 			|	(entity1 == null) || (entity2 == null)
@@ -595,7 +584,7 @@ abstract class Entity {
 		dy = entity1.getPosition().getyComponent() - entity2.getPosition().getyComponent();
 		dvx = entity1.getVelocity().getxComponent() - entity2.getVelocity().getxComponent();
 		dvy = entity1.getVelocity().getyComponent() - entity2.getVelocity().getyComponent();
-		sumOfRadii = entity1.getRadius() + entity2.getRadius();
+		sumOfRadii = (2 - ACCURACY_FACTOR) * entity1.getRadius() + entity2.getRadius();
 		dvDotdr = dvx * dx + dvy * dy;
 		
 		if (dvDotdr >= 0)

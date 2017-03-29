@@ -1,8 +1,8 @@
 package asteroids.model.representation;
 
-import asteroids.model.exceptions.IllegalComponentException;
-import asteroids.model.exceptions.IllegalRadiusException;
-import asteroids.model.exceptions.OverlapException;
+import java.util.Set;
+import java.util.HashSet;
+import asteroids.model.exceptions.*;
 import be.kuleuven.cs.som.annotate.*;
 
 /**
@@ -15,6 +15,8 @@ import be.kuleuven.cs.som.annotate.*;
  *       | isValidMinimalRadius(getMinimalRadius())
  * @invar  The thrusterForce for this ship is a valid thrusterForce for any ship.
  *       | isValidThrusterForce(this.getThrusterForce())
+ * @invar  Each ship must have proper bullets.
+ * 		 | hasProperBullets()
  * 
  * @author Joris Ceulemans & Pieter Senden
  * @version 2.0
@@ -256,10 +258,10 @@ public class Ship extends Entity {
 	}
 	
 	/**
-	 * Return the acceleration of this ship.
+	 * Return the acceleration of this ship (in km / s^2)
 	 * @return 0 if the thruster of this ship is not activated, and the quotient of this ship's thruster force and mass if the
 	 * 				thruster is activated
-	 * 			| if (hasThrusterActivated()) then result == getThrusterForce() / getMass()
+	 * 			| if (hasThrusterActivated()) then result == getThrusterForce() / (getMass() * 1000)
 	 * 			|	else result == 0
 	 */
 	public double getAcceleration() {
@@ -367,5 +369,155 @@ public class Ship extends Entity {
 					 	getVelocity().getyComponent() + duration * getAcceleration() * Math.sin(getOrientation()));
 	}
 	
+	/**
+	 * Check whether this ship has loaded this bullet in its magazine.
+	 */
+	@Basic
+	public boolean hasLoadedInMagazine(@Raw Bullet bullet) {
+		return magazine.contains(bullet);
+	}
+	
+	/**
+	 * Add the given bullet to the magazine of this ship.
+	 * @param bullet
+	 * 		The bullet to be added to this ship.
+	 * @post If this ship can have the given bullet as bullet, then the bullet is added to the magazine of this ship.
+	 * 		| if (canHaveAsBullet(bullet))
+	 * 		|	then hasLoadedInMagazine(bullet)
+	 * @throws IllegalBulletException
+	 * 		This ship cannot have the given bullet as bullet.
+	 * 		| ! canHaveAsBullet(bullet)
+	 */
+	private void addAsLoadedBullet(@Raw Bullet bullet) throws IllegalBulletException {
+		if (! canHaveAsBullet(bullet))
+			throw new IllegalBulletException();
+		this.magazine.add(bullet);
+	}
+	
+	
+	/**
+	 * Check whether this ship has fired the given bullet. 
+	 */
+	@Basic
+	public boolean hasFired(@Raw Bullet bullet) {
+		return firedBullets.contains(bullet);
+	}
+	
+	
+	/**
+	 * Check whether this ship is associated to the given bullet.
+	 * @param bullet
+	 * 			The bullet to check.
+	 * @return True iff this ship has fired or loaded the given bullet.
+	 * 			| @see implementation
+	 */
+	public boolean hasAsBullet(@Raw Bullet bullet) {
+		return hasFired(bullet) || hasLoadedInMagazine(bullet);
+	}
+	
+	/**
+	 * Check whether this ship can be associated to the given bullet.
+	 * @param bullet
+	 * 		The bullet to check.
+	 * @return True iff the given bullet is effective and, if the bullet is associated to a world,
+	 * 			this ship must be associated to the same world.
+	 * 			| if (bullet == null)
+	 * 			|	then result == false
+	 * 			| else if (bullet.getWorld() == null)
+	 * 			|	then result == true
+	 * 			| else if (bullet.getWorld() == this.getWorld())
+	 * 			|	then result == true
+	 * 			| else
+	 * 			|	result == false
+	 */
+	@Raw
+	public boolean canHaveAsBullet(Bullet bullet) {
+		return (bullet != null && (bullet.getWorld() == null || getWorld() == bullet.getWorld()));
+	}
+	
+	/**
+	 * Check whether this ship has proper bullets associated to it.
+	 * @return True iff each bullet in magazine is effective, has not been fired by this ship, is not associated to any world
+	 * 			and references this ship as its ship, 
+	 * 			and each bullet that has been fired by this ship, is effective, is not loaded in the magazine of this ship,
+	 * 			is associated to the same world as this ship and references this ship as its ship.
+	 * 			| result == 
+	 * 			| 	(for each bullet in magazine:
+	 * 			|		bullet != null && bullet.getShip() == this && ! hasFired(bullet) && bullet.getWorld() == null)
+	 * 			|	&&
+	 * 			|	(for each bullet in firedBullets:
+	 * 			|		bullet != null && bullet.getShip() == this && ! hasLoadedInMagazine(bullet) && bullet.getWorld() == getWorld()) 			
+	 */
+	public boolean hasProperBullets() {
+		for (Bullet bullet : magazine) {
+			if (bullet == null || bullet.getShip() != this || hasFired(bullet) || bullet.getWorld() != null)
+				return false;
+		}
+		for (Bullet bullet : firedBullets) {
+			if (bullet == null || bullet.getShip() != this || hasLoadedInMagazine(bullet) || bullet.getWorld() != getWorld())
+				return false;
+		}
+		return true;
+	}
+	
+	/**
+	 * Return the number of bullets loaded in the magazine of this ship. 
+	 */
+	@Basic @Raw
+	public int getNbOfBulletsInMagazine() {
+		return magazine.size();
+	}
+	
+	/**
+	 * Return the magazine with the loaded bullets of this ship.
+	 */
+	@Model @Basic
+	private Set<Bullet> getMagazine() {
+		return this.magazine;
+	}
+	
+	/**
+	 * Fire a bullet from the magazine of this ship.
+	 * @post If the magazine of this ship is not empty, then a random bullet randomBullet is removed from the magazine
+	 * 			and added to the world containing this ship, if any, and hasFired(randomBullet) is true.
+	 * 		| if (getNbOfBulletsInMagazine() != 0)
+	 * 		|	then for precisely one bullet in getMagazine():
+	 * 		|		hasFired((new bullet)) && ! hasLoadedInMagazine((new bullet))
+	 * @effect If the magazine of this ship is not empty, said random bullet is set to fire configuration.
+	 * 		| randomBullet.setToFireConfiguration() 
+	 */
+	public void fireBullet() {
+		if ( getNbOfBulletsInMagazine() != 0 ){
+			Bullet bulletToFire = (Bullet)getMagazine().toArray()[0];
+			bulletToFire.setToFireConfiguration();
+			
+		}
+	}
+	
+	
+	/**
+	 * Set representing the bullets loaded on this ship.
+	 * @invar The set of bullets loaded on this ship is effective
+	 * 		| magazine != null
+	 * @invar Each element in the magazine references a bullet
+	 * 			that is an acceptable bullet for this ship.
+	 * 		| for each bullet in magazine: canHaveAsBullet(bullet)
+	 * @invar Each bullet in the magazine references this ship as the ship on which it is loaded.
+	 * 		| for each bullet in magazine: bullet.getShip() == this
+	 */
+	private Set<Bullet> magazine = new HashSet<>();
+	
+	/**
+	 * Set representing the bullets fired by this ship.
+	 * @invar The set of bullets fired by this ship is effective
+	 * 		| firedBullets != null
+	 * @invar Each element in the set of fired bullets references a bullet
+	 * 			that is an acceptable bullet for this ship.
+	 * 		| for each bullet in firedBullets: canHaveAsBullet(bullet)
+	 * @invar Each bullet in the set of fired bullets references this ship
+	 * 			as the ship by which it has been fired.
+	 * 		| for each bullet in firedBullets: bullet.getShip() == this
+	 */
+	private Set<Bullet> firedBullets = new HashSet<>();
 	
 }
