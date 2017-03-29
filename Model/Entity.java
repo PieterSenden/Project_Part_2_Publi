@@ -129,6 +129,7 @@ abstract class Entity {
 		return false;
 	}
 	
+	
 	/**
 	 * Move this entity during a given time duration.
 	 * 
@@ -495,27 +496,89 @@ abstract class Entity {
 	}
 	
 	/**
+	 * Check whether 2 entities apparently collide.
+	 * @param entity1
+	 * 			The first entity
+	 * @param entity2
+	 * 			The second entity
+	 * @return false if one of the entities is not effective, is not associated to a world or if they are not associated to the same world.
+	 * 			| if (entity1 == null || entity2 == null || entity1.getWorld() == null || entity2.getWorld() == null ||
+	 * 			|																					 entity1.getWorld() != entity2.getWorld())
+	 * 			|	then result == false.
+	 * @return true if both entities are effective and associated to the same world and if the distance between the centres of the entities
+	 * 			lies within the range determined by the sum of their radii multiplied with ACCURACY_FACTOR and 2 - ACCURACY_FACTOR respecively.
+	 * 			| if ((entity1 != null) && (entity2!= null) && (entity1 != entity2) && (entity1.getWorld() != null) 
+	 * 			|																	&& (entity1.getWorld() == entity2.getWorld()))
+	 * 			|	then result == (ACCURACY_FACTOR * getSumOfRadii(entity1, entity2) <= getDistanceBetweenCentres(entity1, entity2)) &&
+	 *			|		(getDistanceBetweenCentres(entity1, entity2) <= (2 - ACCURACY_FACTOR) * getSumOfRadii(entity1, entity2))
+	 */
+	public static boolean apparentlyCollide(Entity entity1, Entity entity2) {
+		if (entity1 == null || entity2 == null || entity1.getWorld() == null || entity2.getWorld() == null ||
+				entity1.getWorld() != entity2.getWorld())
+			return false;
+		return (ACCURACY_FACTOR * getSumOfRadii(entity1, entity2) <= getDistanceBetweenCentres(entity1, entity2)) &&
+				(getDistanceBetweenCentres(entity1, entity2) <= (2 - ACCURACY_FACTOR) * getSumOfRadii(entity1, entity2));
+	}
+	
+	/**
+	 * Check whether 2 entities will apparently collide if they are moved during a certain duration.
+	 * @param entity1
+	 * 			The first entity
+	 * @param entity2
+	 * 			The second entity
+	 * @param duration
+	 * 			The duration during which the ships must be moved.
+	 * @return false if one of the entities is not effective, is not associated to a world or if they are not associated to the same world.
+	 * 			| if (entity1 == null || entity2 == null || entity1.getWorld() == null || entity2.getWorld() == null ||
+	 * 			|																					 entity1.getWorld() != entity2.getWorld())
+	 * 			|	then result == false.
+	 * @return true if both entities are effective and associated to the same world and if they apparently collide when their positions
+	 * 			are set as if they moved during the given duration. It does not matter whether they apparently collide during the
+	 * 			process of moving the entities. Only the final positions are important.
+	 * 			| if ((entity1 != null) && (entity2!= null) && (entity1 != entity2) && (entity1.getWorld() != null) 
+	 * 			|																	&& (entity1.getWorld() == entity2.getWorld()))
+	 * 			|	then result == (ACCURACY_FACTOR * getSumOfRadii(entity1, entity2) <= 
+	 * 			|		Position.getDistanceBetween(entity1.getPosition().move(entity1.getVelocity(), duration),
+	 * 			|											 entity2.getPosition().move(entity2.getVelocity(), duration))) &&
+				|		(Position.getDistanceBetween(entity1.getPosition().move(entity1.getVelocity(), duration),
+	 * 			|											 entity2.getPosition().move(entity2.getVelocity(), duration)) <= 
+	 * 			|		(2 - ACCURACY_FACTOR) * getSumOfRadii(entity1, entity2));
+	 */
+	public static boolean apparentlyCollideAfterMove(Entity entity1, Entity entity2, double duration) {
+		if (entity1 == null || entity2 == null || entity1.getWorld() == null || entity2.getWorld() == null ||
+																							entity1.getWorld() != entity2.getWorld())
+			return false;
+		Position position1 = entity1.getPosition().move(entity1.getVelocity(), duration);
+		Position position2 = entity2.getPosition().move(entity2.getVelocity(), duration);
+		double distanceBetweenCentres = Position.getDistanceBetween(position1, position2);
+		return ACCURACY_FACTOR * getSumOfRadii(entity1, entity2) <= distanceBetweenCentres &&
+				distanceBetweenCentres <= (2 - ACCURACY_FACTOR) * getSumOfRadii(entity1, entity2);
+	}
+	
+	/**
 	 * Determine the time after which, if ever, two entities will collide.
 	 * @param entity1
 	 * 			The first entity
 	 * @param entity2
 	 * 			The second entity
-	 * @return If both entities are effective, different and are associated to the same effective world
+	 * @return If both entities are effective, different and are associated to the same effective world the result is determined such that
+	 * 			the two entities would apparently collide after they would have moved during the given duration, but not earlier.
 	 * 			| if ((entity1 != null) && (entity2!= null) && (entity1 != entity2) && (entity1.getWorld() != null) 
 	 * 			|																	&& (entity1.getWorld() == entity2.getWorld()))
-	 * 			|	then apparentlyCollide(entity1.getPosition().move(entity1.getVelocity(), result), entity2.getPosition
-	 * If both entities are effective and different, the result satisfies the following conditions:
-	 * 			1.	After both entities are moved during the returned duration, they will overlap.
-	 * 			| if  ((entity1 != null) && (entity2!= null) && (entity1 != entity2))
-	 * 			| 	then (overlap(entity1, entity2)) is true after the execution of the following code snippet:
-	 * 			|			entity1.move(result);
-	 * 			|			entity2.move(result);
-	 * 			2.	After both entities are moved during a positive time less than the returned duration, they will not overlap.
-	 * 			| if  ((entity1 != null) && (entity2!= null) && (entity1 != entity2))
-	 * 			|	then for each duration in { time in the real numbers | 0 <= time < result}, 
-	 * 			|		(overlap(entity1, entity2)) is false after the execution of the following code snippet:
-	 * 			|			entity1.move(duration);
-	 * 			|			entity2.move(duration);
+	 * 			|	then apparentlyCollideAfterMove(entity1, entity2, result) &&
+	 * 			|		( for each t in { x in Real Numbers | 0 <= x < result } : !apparentlyCollideAfterMove(entity1, entity2, t)
+//	 * If both entities are effective and different, the result satisfies the following conditions:
+//	 * 			1.	After both entities are moved during the returned duration, they will overlap.
+//	 * 			| if  ((entity1 != null) && (entity2!= null) && (entity1 != entity2))
+//	 * 			| 	then (overlap(entity1, entity2)) is true after the execution of the following code snippet:
+//	 * 			|			entity1.move(result);
+//	 * 			|			entity2.move(result);
+//	 * 			2.	After both entities are moved during a positive time less than the returned duration, they will not overlap.
+//	 * 			| if  ((entity1 != null) && (entity2!= null) && (entity1 != entity2))
+//	 * 			|	then for each duration in { time in the real numbers | 0 <= time < result}, 
+//	 * 			|		(overlap(entity1, entity2)) is false after the execution of the following code snippet:
+//	 * 			|			entity1.move(duration);
+//	 * 			|			entity2.move(duration);
 	 * @throws NullPointerException
 	 * 			One of the entities is non-effective.
 	 * 			|	(entity1 == null) || (entity2 == null)
@@ -596,6 +659,60 @@ abstract class Entity {
 				(position1.getyComponent() * radius2 + position2.getyComponent() * radius1) / sumOfRadii);
 		
 	}
+	
+//	/**
+//	 * Check whether this entity apparently collides with the boundary of its world.
+//	 * @return true iff this entity cannot have its position as position.
+//	 * 			| @see implementation
+//	 */
+//	public boolean apparentlyCollidesWithBoundary() {
+//		return !canHaveAsPosition(getPosition().getxComponent(), getPosition().getyComponent());
+//	}
+	
+	/**
+	 * Determine the time after which, if ever, this entity will collide with the boundary of its world.
+	 * @return Double.POSITIVE_INFINITY if this entity is not associated to a world.
+	 * 			| if (getWorld() == null)
+	 * 			|	then result == Double.POSITIVE_INFINITY
+	 * @return 
+	 * 			| if (getWorld() != null)
+	 * 			|	then ( !canHaveAsPosition(getPosition().move(getVelocity(), result).getxComponent(),
+	 * 			|				getPosition().move(getVelocity(), result).getyComponent()) ) &&
+	 * 			|	( for each t in { x in Real Numbers | 0 <= x < result } : 
+	 * 			|				canHaveAsPosition(getPosition().move(getVelocity(), t).getxComponent(),
+	 * 			|						getPosition().move(getVelocity(), t).getyComponent()))
+	 */
+	public double getTimeToCollisionWithBoundary() {
+		if (getWorld() == null)
+			return Double.POSITIVE_INFINITY;
+		double result = Double.POSITIVE_INFINITY;
+		if (getVelocity().getxComponent() <= 0)
+			result = Double.min(result, -(getPosition().getxComponent() - ACCURACY_FACTOR * getRadius()) / getVelocity().getxComponent());
+		else 
+			result = Double.min(result, (getWorld().getWidth() - getPosition().getxComponent() - ACCURACY_FACTOR * getRadius())
+																										/ getVelocity().getxComponent());
+		if (getVelocity().getyComponent() <= 0)
+			result = Double.min(result, -(getPosition().getyComponent() - ACCURACY_FACTOR * getRadius()) / getVelocity().getyComponent());
+		else 
+			result = Double.min(result, (getWorld().getHeight() - getPosition().getyComponent() - ACCURACY_FACTOR * getRadius())
+																										/ getVelocity().getyComponent());
+		return result;
+	}
+	
+	/**
+	 * Determine the position where the given entity will collide with the boundary of its world.
+	 * @return null, if this entity is not associated with a world or it will not collide with a boundary.
+	 * 			| if (getWorld() == null || getTimeToCollisionWithBoundary() == Double.POSITIVE_INFINITY)
+	 * 			|	then result == null
+	 * @return the position where this entity collides with its world's boundary.
+	 * 			| @see implementation
+	 */
+	public Position getCollisionWithBoundaryPosition() {
+		if (getWorld() == null || getTimeToCollisionWithBoundary() == Double.POSITIVE_INFINITY)
+			return null;
+		return getPosition().move(getVelocity(), getTimeToCollisionWithBoundary());
+	}
+	
 	
 	public World getWorld() {
 		return this.world;

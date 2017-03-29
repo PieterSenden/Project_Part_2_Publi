@@ -60,6 +60,11 @@ public class Bullet extends Entity {
 	
 	private final double minimalDensity = 7.8e12;
 	
+	/**
+	 * @param radius
+	 * 			The radius to check.
+	 * @return @see implementation.
+	 */
 	@Override
 	public boolean canHaveAsRadius(double radius) {
 		return radius >= getMinimalRadius();

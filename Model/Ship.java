@@ -52,16 +52,18 @@ public class Ship extends Entity {
 	 * 			| ! isValidRadius(radius)
 	 */
 	@Raw
-	public Ship(double xCoordinate, double yCoordinate, double xComponent, double yComponent, 
-								double radius, double orientation) throws IllegalComponentException, IllegalRadiusException {
-		if (! isValidRadius(radius))
-			throw new IllegalRadiusException();
-		this.radius = radius;
-		setPosition(xCoordinate, yCoordinate);
-		setVelocity(xComponent, yComponent);
+	public Ship(double xComPos, double yComPos, double xComVel, double yComVel, double radius, double orientation, double density,
+			double mass, boolean thrusterStatus) throws IllegalComponentException, IllegalRadiusException {
+		super(xComPos, yComPos, xComVel, yComVel, radius, density, mass);
+		setThrust(thrusterStatus);
 		setOrientation(orientation);
 	}
 	
+	@Raw 
+	public Ship(double xComPos, double yComPos, double xComVel, double yComVel, double radius,
+			double orientation) throws IllegalComponentException, IllegalRadiusException {
+		this(xComPos, yComPos, xComVel, yComVel, radius, orientation, 1.42e12, 10e20, false);
+	}
 
 	
 	/**
@@ -77,8 +79,8 @@ public class Ship extends Entity {
 	 * 			| this(xCoordinate, yCoordinate, 0, 0, radius, 0)
 	 */
 	@Raw
-	public Ship(double xCoordinate, double yCoordinate, double radius) throws IllegalComponentException, IllegalRadiusException {
-		this(xCoordinate, yCoordinate, 0, 0, radius, 0);
+	public Ship(double xComPos, double yComPos, double radius) throws IllegalComponentException, IllegalRadiusException {
+		this(xComPos, yComPos, 0, 0, radius, 0);
 	}
 	
 	/**
@@ -143,6 +145,11 @@ public class Ship extends Entity {
 	 */
 	private double orientation;
 	
+	/**
+	 * @param radius
+	 * 			The radius to check.
+	 * @return @see implementation.
+	 */
 	@Override
 	public boolean canHaveAsRadius(double radius) {
 		return radius >= getMinimalRadius();
@@ -218,7 +225,7 @@ public class Ship extends Entity {
 		return minimalDensity;
 	}
 	
-	private final double minimalDensity;
+	private final double minimalDensity = 1.42e12;
 	
 	
 //	/**
@@ -257,7 +264,7 @@ public class Ship extends Entity {
 	 */
 	public double getAcceleration() {
 		if (hasThrusterActivated())
-			return getThrusterForce() / getMass();
+			return getThrusterForce() / (getMass() * 1000);
 		else 
 			return 0;
 	}
@@ -274,11 +281,25 @@ public class Ship extends Entity {
 	public static boolean isValidThrusterForce(double force) {
 		return force >= 0;
 	}
-		
+	
+	/**
+	 * Set the thruster force of this ship to the given force.
+	 * @param force
+	 * 			The new thruster force for this ship.
+	 * @post If the given force is a valid thruster force for any ship, the new thruster force of this ship is equal to the given force.
+	 * 			| if (isValidThrusterForce(force))
+	 * 			|	then new.getThrusterForce() == force
+	 */
+	@Raw
+	public void setThrusterForce(double force) {
+		if (isValidThrusterForce(force))
+			this.thrusterForce = force;
+	}
+	
 	/**
 	 * Variable registering the thruster force of this ship.
 	 */
-	private double thrusterForce;
+	private double thrusterForce = 1.1e21;
 	
 	
 	/**
