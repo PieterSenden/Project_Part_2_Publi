@@ -1,7 +1,7 @@
 package asteroids.model.exceptions;
 
 /**
- * A class for signaling exceptions in coordinates of a position.
+ * A class for signaling exceptions in components of a physical vector.
  * 
  * @author Joris Ceulemans & Pieter Senden
  * @version 1.0
