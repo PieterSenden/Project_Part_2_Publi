@@ -119,7 +119,7 @@ public class Bullet extends Entity {
 	/**
 	 * Return the ship associated to this bullet, i.e. the ship that holds this bullet or fired it.
 	 */
-	@Basic
+	@Basic @Raw
 	public Ship getShip() {
 		return this.ship;
 	}
@@ -222,5 +222,8 @@ public class Bullet extends Entity {
 		this.ship = ship;
 	}
 	
+	/**
+	 * A variable registering the ship to which this bullet is associated (contained in or fired by).
+	 */
 	private Ship ship;
 }

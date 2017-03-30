@@ -537,10 +537,20 @@ public class Ship extends Entity {
 	
 	/**
 	 * Return the number of bullets loaded in the magazine of this ship. 
+	 * @return The number of bullets loaded in the magazine of this ship.
+	 * 			| @see implementation
+	 */
+	@Raw
+	public int getNbOfBulletsInMagazine() {
+		return getMagazine().size();
+	}
+	
+	/**
+	 * Return the number of bullets fires by this ship that are not destroyed. 
 	 */
 	@Basic @Raw
-	public int getNbOfBulletsInMagazine() {
-		return magazine.size();
+	public int getNbOfFiredBullets() {
+		return firedBullets.size();
 	}
 	
 	/**

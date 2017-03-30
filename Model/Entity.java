@@ -122,11 +122,7 @@ abstract class Entity {
 	public boolean canHaveAsPosition(double xComponent, double yComponent) {
 		if (getWorld() == null)
 			return true;
-		if ((xComponent >= getRadius() * ACCURACY_FACTOR) && (yComponent >= getRadius() * ACCURACY_FACTOR) 
-				&& (getWorld().getHeight() - xComponent >= getRadius() * ACCURACY_FACTOR)
-				&& (getWorld().getWidth() - yComponent >= getRadius() * ACCURACY_FACTOR))
-			return true;
-		return false;
+		return getWorld().boundariesSurround(this);
 	}
 	
 	
@@ -503,7 +499,7 @@ abstract class Entity {
 	 *			//TODO Find a better formulation.
 	 * @return True iff minimal distance between the centre of the given entity and a point on the boundary of this entity
 	 * 			is greater than or equal to the radius of the given entity times the ACCURACY_FACTOR.
-	 * 		| result == (min{ pos in {new Position(x, y) | x, y real numbers} | Position.getDistanceBetween(pos, this.getPosition()) == this.getRadius()
+	 * 		| result == (min{ pos in Position | Position.getDistanceBetween(pos, this.getPosition()) == this.getRadius()
 	 * 		|					: Position.getDistanceBetween(pos, other.getPosition())}) >= other.getRadius() * ACCURACY_FACTOR)
 	 * @throws NullPointerException
 	 * 			The given entity is not effective
@@ -619,18 +615,16 @@ abstract class Entity {
 	 * 			The second entity.
 	 * @return null, if the entities will not collide
 	 * 			| if (getTimeToCollision(entity1, entity2) == Double.POSITIVE_INFINITY)
-	 * 			|	then return null 
+	 * 			|	then result == null 
 	 * @return If the entities will collide, the result satisfies the following condition(s):
 	 * 			After both entities are moved during the time getTimeToCollision(entity1, entity2), the distance between
 	 * 			the result and the position of entity1 equals the radius of entity1 and the distance between
 	 * 			the result and the position of entity2 equals the radius of entity2.
 	 * 			| if ( Double.isFinite(getTimeToCollision(entity1, entity2)) )
-	 * 			| 	then (Position.getDistanceBetween(result, entity1.getPosition()) == entity1.getRadius() ) &&
-	 * 			|			(Position.getDistanceBetween(result, entity2.getPosition()) == entity2.getRadius() )
-	 * 			|	is true, after the execution of the following code snippet:
-	 * 			|			double duration = getTimeToCollision(entity1, entity2);
-	 * 			|			entity1.move(duration);
-	 * 			|			entity2.move(duration);
+	 * 			| 	then (Position.getDistanceBetween(result, entity1.getPosition().move(getTimeToCollision(entity1, entity2))) == 
+	 * 			|		entity1.getRadius() ) 
+	 * 			|	&& (Position.getDistanceBetween(result, entity2.getPosition().move(getTimeToCollision(entity1, entity2))) == 
+	 * 			|		entity2.getRadius() )
 	 * @throws NullPointerException
 	 * 			One of the entities is non-effective.
 	 * 			| (entity1 == null) || (entity2 == null)
@@ -717,9 +711,57 @@ abstract class Entity {
 	}
 	
 	
+	/**
+	 * Check whether this entity can have the given world as world.
+	 * @param world
+	 * 			The world to check.
+	 * @return | @see implementation
+	 */
+	public boolean canHaveAsWorld(World world) {
+		return (world == null) || world.canHaveAsEntity(this);
+	}
+	
+	/**
+	 * Check whether this entity has a proper world.
+	 * @return True iff the world associated to this entity is null or contains this entity at this entity's position.
+	 * 			| result == (getWorld() == null) || (getWorld().getEntityAt(this.getPosition()) == this && 
+	 * 			|				(for each position in getWorld().getOccupiedPositions():
+	 * 			|					position == this.getPosition() || getWorld().getEntityAt(position) != this))
+	 */
+	public boolean hasProperWorld() {
+		if (getWorld() == null)
+			return true;
+		if (getWorld().getEntityAt(this.getPosition()) != this)
+			return false;
+		else {
+			for(Position position: getWorld().getOccupiedPositions()) {
+				if (!position.equals(getPosition()) && getWorld().getEntityAt(position) == this)
+					return false;
+			}
+		}
+		return true;
+	}
+	
+	/**
+	 * Return the world in which this entity is contained.
+	 */
+	@Basic @Raw
 	public World getWorld() {
 		return this.world;
 	}
 	
+	/**
+	 * Set the world of this entity to the given world.
+	 * @param world
+	 * 			The new world for this entity.
+	 * 
+	 */
+	public void setWorld(World world) {
+		
+	}
+	
+	/**
+	 * A variable registering the world in which this entity is contained.
+	 */
 	private World world;
 }
