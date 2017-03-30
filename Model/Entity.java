@@ -497,6 +497,24 @@ abstract class Entity {
 	}
 	
 	/**
+	 * Check whether the given entity lies fully within the bounds of this entity.
+	 * @param other
+	 * 			The entity to check.
+	 *			//TODO Find a better formulation.
+	 * @return True iff minimal distance between the centre of the given entity and a point on the boundary of this entity
+	 * 			is greater than or equal to the radius of the given entity times the ACCURACY_FACTOR.
+	 * 		| result == (min{ pos in {new Position(x, y) | x, y real numbers} | Position.getDistanceBetween(pos, this.getPosition()) == this.getRadius()
+	 * 		|					: Position.getDistanceBetween(pos, other.getPosition())}) >= other.getRadius() * ACCURACY_FACTOR)
+	 * @throws NullPointerException
+	 * 			The given entity is not effective
+	 * 		| other == null
+	 */
+	public boolean surrounds(Entity other) throws NullPointerException {
+		return (this.getRadius() - getDistanceBetweenCentres(this, other) ) >= other.getRadius() * ACCURACY_FACTOR;
+	}
+	
+	
+	/**
 	 * Check whether two entities apparently collide.
 	 * @param entity1
 	 * 			The first entity
@@ -522,7 +540,7 @@ abstract class Entity {
 	}
 	
 	/**
-	 * Check whether two entities will apparently collide if they are moved during a certain duration.
+	 * Check whether two entities will collide if they are moved during a certain duration.
 	 * @param entity1
 	 * 			The first entity
 	 * @param entity2
@@ -533,27 +551,23 @@ abstract class Entity {
 	 * 			| if (entity1 == null || entity2 == null || entity1.getWorld() == null || entity2.getWorld() == null ||
 	 * 			|																					 entity1.getWorld() != entity2.getWorld())
 	 * 			|	then result == false.
-	 * @return true if both entities are effective and associated to the same world and if they apparently collide when their positions
-	 * 			are set as if they moved during the given duration. It does not matter whether they apparently collide during the
+	 * @return true if both entities are effective and associated to the same world and if they collide when their positions
+	 * 			are set as if they moved during the given duration. It does not matter whether they collide during the
 	 * 			process of moving the entities. Only the final positions are important.
 	 * 			| if ((entity1 != null) && (entity2!= null) && (entity1 != entity2) && (entity1.getWorld() != null) 
 	 * 			|																	&& (entity1.getWorld() == entity2.getWorld()))
-	 * 			|	then result == (ACCURACY_FACTOR * getSumOfRadii(entity1, entity2) <= 
+	 * 			|	then result == (getSumOfRadii(entity1, entity2) == 
 	 * 			|		Position.getDistanceBetween(entity1.getPosition().move(entity1.getVelocity(), duration),
-	 * 			|											 entity2.getPosition().move(entity2.getVelocity(), duration))) &&
-				|		(Position.getDistanceBetween(entity1.getPosition().move(entity1.getVelocity(), duration),
-	 * 			|											 entity2.getPosition().move(entity2.getVelocity(), duration)) <= 
-	 * 			|		(2 - ACCURACY_FACTOR) * getSumOfRadii(entity1, entity2))
+	 * 			|											 entity2.getPosition().move(entity2.getVelocity(), duration)))
 	 */
-	public static boolean apparentlyCollideAfterMove(Entity entity1, Entity entity2, double duration) {
+	public static boolean collideAfterMove(Entity entity1, Entity entity2, double duration) {
 		if (entity1 == null || entity2 == null || entity1.getWorld() == null || entity2.getWorld() == null ||
 																							entity1.getWorld() != entity2.getWorld())
 			return false;
 		Position position1 = entity1.getPosition().move(entity1.getVelocity(), duration);
 		Position position2 = entity2.getPosition().move(entity2.getVelocity(), duration);
 		double distanceBetweenCentres = Position.getDistanceBetween(position1, position2);
-		return ACCURACY_FACTOR * getSumOfRadii(entity1, entity2) <= distanceBetweenCentres &&
-				distanceBetweenCentres <= (2 - ACCURACY_FACTOR) * getSumOfRadii(entity1, entity2);
+		return getSumOfRadii(entity1, entity2) == distanceBetweenCentres;
 	}
 	
 	/**
@@ -563,11 +577,11 @@ abstract class Entity {
 	 * @param entity2
 	 * 			The second entity
 	 * @return If both entities are effective, different and are associated to the same effective world the result is determined such that
-	 * 			the two entities would apparently collide after they would have moved during the given duration, but not earlier.
+	 * 			the two entities would collide after they would have moved during the given duration, but not earlier.
 	 * 			| if ((entity1 != null) && (entity2!= null) && (entity1 != entity2) && (entity1.getWorld() != null) 
 	 * 			|																	&& (entity1.getWorld() == entity2.getWorld()))
-	 * 			|	then apparentlyCollideAfterMove(entity1, entity2, result) &&
-	 * 			|		( for each t in { x in Real Numbers | 0 <= x < result } : !apparentlyCollideAfterMove(entity1, entity2, t)
+	 * 			|	then collideAfterMove(entity1, entity2, result) &&
+	 * 			|		( for each t in { x in Real Numbers | 0 <= x < result } : !collideAfterMove(entity1, entity2, t)
 	 * @throws NullPointerException
 	 * 			One of the entities is non-effective.
 	 * 			|	(entity1 == null) || (entity2 == null)
@@ -584,7 +598,7 @@ abstract class Entity {
 		dy = entity1.getPosition().getyComponent() - entity2.getPosition().getyComponent();
 		dvx = entity1.getVelocity().getxComponent() - entity2.getVelocity().getxComponent();
 		dvy = entity1.getVelocity().getyComponent() - entity2.getVelocity().getyComponent();
-		sumOfRadii = (2 - ACCURACY_FACTOR) * entity1.getRadius() + entity2.getRadius();
+		sumOfRadii = entity1.getRadius() + entity2.getRadius();
 		dvDotdr = dvx * dx + dvy * dy;
 		
 		if (dvDotdr >= 0)

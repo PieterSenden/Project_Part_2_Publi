@@ -211,6 +211,8 @@ public class Bullet extends Entity {
 	 * @throws IllegalMethodCallException
 	 * 			| ( ( ship != null && ! ship.hasAsBullet(this)) ||
 	 * 		   	|	(ship == null && getShip() != null && getShip().hasAsBullet(this))
+	 * @note If this method is invoked with an effective ship and does not throw an exception,
+	 * 			then the world of this bullet must be set to null.
 	 */
 	@Raw
 	void setShip(Ship ship) throws IllegalMethodCallException {

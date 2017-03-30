@@ -229,7 +229,6 @@ public class Ship extends Entity {
 	
 	private final double minimalDensity = 1.42e12;
 	
-	
 	/**
 	 * Return the total mass of this ship.
 	 * The total mass of a ship is the sum of its mass and the mass of the objects carried by that ship.
@@ -243,7 +242,6 @@ public class Ship extends Entity {
 		}
 		return result;
 	}
-	
 	
 //	/**
 //	 * Initialize this new ship with given thrusterForce.
@@ -567,9 +565,12 @@ public class Ship extends Entity {
 	public void fireBullet() {
 		if ( getNbOfBulletsInMagazine() != 0 && getWorld() != null){
 			Bullet bulletToFire = (Bullet)getMagazine().toArray()[0];
+			// TODO: associate bullet to world of getShip() + catch possible exception in setToFireConfiguration()
 			bulletToFire.setToFireConfiguration();
 			removeAsLoadedBullet(bulletToFire);
+			// Cannot throw IllegalBulletException, since bulletToFire was loaded in the magazine. 
 			addAsFiredBullet(bulletToFire);
+			// Cannot throw IllegalBulletException, since canHaveAsBullet(bulletToFire) was already true by class invariant.
 		}
 	}
 	
@@ -577,12 +578,41 @@ public class Ship extends Entity {
 	 * Load a bullet in the magazine of this ship.
 	 * @param bullet
 	 * 		The bullet to be loaded in the magazine this ship.
-	 * 
+	 * @effect The ship of the given bullet is set to this ship.
+	 * 		| bullet.setShip(this)
+	 * @effect The bullet is set to the load configuration.
+	 * 		| bullet.setToLoadConfiguration()
+	 * @post This ship has the given bullet loaded in its magazine and this ship has not fired this bullet.
+	 * 		| hasLoadedInMagazine(bullet) && ! hasFired(bullet)
+	 * @throws IllegalBulletException
+	 * 			This ship cannot have the given bullet as bullet,
+	 * 				or (the given bullet does not lie fully within the bounds of this ship and this ship has not fired the given bullet),
+	 * 				or (the ship associated to the given bullet is effective but different from this ship).
+	 * 			| @see implementation
 	 */
-	public void loadBullet(Bullet bullet) {
-		if (! canHaveAsBullet(bullet) && ! surroundsEntity(bullet))
+	public void loadBullet(Bullet bullet) throws IllegalBulletException {
+		if (! canHaveAsBullet(bullet) || (! surrounds(bullet) && ! hasFired(bullet) ) || (bullet.getShip() != null && bullet.getShip() != this))
 			throw new IllegalBulletException();
-		
+		if (hasFired(bullet))
+			removeAsFiredBullet(bullet);
+		addAsLoadedBullet(bullet);
+		bullet.setShip(this);
+		// TODO: associate bullet to null world
+		bullet.setToLoadConfiguration();
+	}
+	
+	/**
+	 * Load multiple bullets in the magazine of this ship.
+	 * @param bullets
+	 * 		The bullets to be loaded in the magazine of this ship.
+	 * @effect Every single bullet is loaded in the magazine of this ship.
+	 * 			| for each bullet in bullets:
+	 * 			|	loadBullet(bullets)
+	 */
+	public void loadBullets(Bullet... bullets) {
+		for (Bullet bullet : bullets) {
+			loadBullet(bullet);
+		}
 	}
 	
 	/**
