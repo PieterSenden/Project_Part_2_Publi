@@ -230,6 +230,21 @@ public class Ship extends Entity {
 	private final double minimalDensity = 1.42e12;
 	
 	
+	/**
+	 * Return the total mass of this ship.
+	 * The total mass of a ship is the sum of its mass and the mass of the objects carried by that ship.
+	 * @return The total mass of this ship.
+	 * 			| result = getMass() + sum( { x in getMagazine() | true : x.getMass() } )
+	 */
+	public double getTotalMass() {
+		double result = getMass();
+		for(Bullet bullet: getMagazine()) {
+			result += bullet.getMass();
+		}
+		return result;
+	}
+	
+	
 //	/**
 //	 * Initialize this new ship with given thrusterForce.
 //	 * 
