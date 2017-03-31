@@ -307,7 +307,7 @@ public class Ship extends Entity {
 	 */
 	public double getAcceleration() {
 		if (hasThrusterActivated())
-			return getThrusterForce() / (getMass() * 1000);
+			return getThrusterForce() / getMass();
 		else 
 			return 0;
 	}
@@ -625,8 +625,8 @@ public class Ship extends Entity {
 	 * Return the magazine with the loaded bullets of this ship.
 	 */
 	@Model @Basic
-	private Set<Bullet> getMagazine() {
-		return this.magazine;
+	public Set<Bullet> getMagazine() {
+		return new HashSet<Bullet>(this.magazine);
 	}
 	
 	/**
@@ -708,7 +708,7 @@ public class Ship extends Entity {
 			removeAsFiredBullet(bullet);
 		addAsLoadedBullet(bullet);
 		bullet.setShip(this);
-		if (getWorld() != null)
+		if (bullet.getWorld() != null)
 			getWorld().removeEntity(bullet);
 			//The method removeEntity cannot throw an exception because all conditions to throw exceptions are false in this case.
 		bullet.setToLoadConfiguration();

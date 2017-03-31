@@ -158,6 +158,13 @@ public class World {
 	 */
 	private static final double maxWidth = Double.MAX_VALUE;
 	
+	/**TODO
+	 * @return
+	 */
+	public double[] getDimensions() {
+		return new double[] {getWidth(), getHeight()};
+	}
+	
 	/**
 	 * Check whether the given position lies within the boundaries of this world.
 	 * @param position
@@ -390,6 +397,30 @@ public class World {
 		return result;
 	}
 	
+	public Position getPositionFirstCollision() throws IllegalMethodCallException, IllegalStateException {
+		if (isTerminated())
+			throw new IllegalStateException();
+		if (getEntities().isEmpty())
+			throw new IllegalMethodCallException();
+		double minimalTime = Double.POSITIVE_INFINITY;
+		Position result = null;
+		for (Entity entity: getEntities()) {
+			if (minimalTime >= entity.getTimeToCollisionWithBoundary()) {
+				minimalTime = entity.getTimeToCollisionWithBoundary();
+				result = entity.getCollisionWithBoundaryPosition();
+			}
+			for (Entity other: getEntities()) {
+				if (other != entity)
+					if (minimalTime >= Entity.getTimeToCollision(entity, other)) {
+						minimalTime = Entity.getTimeToCollision(entity, other);
+						result = Entity.getCollisionPosition(entity, other);
+						//The method getTimeToCollision cannot throw an exception because of the class invariants of world.
+					}
+			}
+		}
+		return result;
+	}
+	
 	private void advance(double duration) throws IllegalArgumentException, IllegalStateException {
 		if (isTerminated())
 			throw new IllegalStateException();
@@ -447,12 +478,13 @@ public class World {
 		if (duration < 0)
 			throw new IllegalArgumentException();
 		double timeToFirstCollision = getTimeToFirstCollision();
-		while (timeToFirstCollision <= duration) {
+		while (timeToFirstCollision <= duration && timeToFirstCollision > 0) {
 			advance(timeToFirstCollision);
 			resolveCollisions();
 			duration -= timeToFirstCollision;
 			timeToFirstCollision = getTimeToFirstCollision();
 		}
-		advance(duration);
+		if (duration >= 0)
+			advance(duration);
 	}
 }

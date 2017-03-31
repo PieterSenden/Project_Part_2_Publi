@@ -773,12 +773,12 @@ public abstract class Entity {
 		if (getWorld() == null)
 			return Double.POSITIVE_INFINITY;
 		double result = Double.POSITIVE_INFINITY;
-		if (getVelocity().getxComponent() <= 0)
+		if (getVelocity().getxComponent() < 0)
 			result = Double.min(result, -(getPosition().getxComponent() - getRadius()) / getVelocity().getxComponent());
 		else 
 			result = Double.min(result, (getWorld().getWidth() - getPosition().getxComponent() - getRadius())
 																										/ getVelocity().getxComponent());
-		if (getVelocity().getyComponent() <= 0)
+		if (getVelocity().getyComponent() < 0)
 			result = Double.min(result, -(getPosition().getyComponent() - getRadius()) / getVelocity().getyComponent());
 		else 
 			result = Double.min(result, (getWorld().getHeight() - getPosition().getyComponent() - getRadius())
