@@ -10,18 +10,30 @@ import be.kuleuven.cs.som.annotate.*;
  *       | isValidMinimalRadius(getMinimalRadius())
  * @invar Each bullet must have a proper ship.
  * 		 | hasProperShip()
+ * @invar Each bullet can have its nbOfBounces as nbOfBounces
+ * 		 | canHaveAsNbOfBounces(getNbOfBounces)
+ * @invar  Each bullet can have its maximal number of bounces as maximal number of bounces.
+ *       | canHaveAsMaximalNbOfBounces(this.getMaximalNbOfBounces())
  * @note In this class, when we state 'this bullet is associated to a ship', we mean that
  * 			the bullet is either loaded in the magazine of the ship or has been fired by the ship.
  * 			In the former case, the bullet is not associated to a world. In the latter case,
  * 			it is associated to a world.
  */
 
+//TODO Add terminated checks.
+
 public class Bullet extends Entity {
-	
+	@Raw
 	public Bullet(double xComPos, double yComPos, double xComVel, double yComVel, double radius, double density,
 			double mass) throws IllegalComponentException, IllegalPositionException, IllegalRadiusException {
 		super(xComPos, yComPos, xComVel, yComVel, radius, density, mass);
-		// TODO Auto-generated constructor stub
+	}
+	
+	@Raw
+	public Bullet(double xComPos, double yComPos, double xComVel, double yComVel, double radius) {
+		this(xComPos, yComPos, xComVel, yComVel, radius, 7.8e12, 10e20);
+		//The value of the mass appears to be set to 10e=20. However, this value is changed to the only possible mass for a bullet
+		//with a given radius in the constructor of Entity.
 	}
 	
 	/**
@@ -29,8 +41,28 @@ public class Bullet extends Entity {
 	 */
 	@Override
 	public Bullet copy() {
-		return new Bullet(getPosition().getxComponent(), getPosition().getyComponent(), getVelocity().getxComponent(), getVelocity().getyComponent(),
-				getRadius(), getDensity(), getMass());
+		return new Bullet(getPosition().getxComponent(), getPosition().getyComponent(), getVelocity().getxComponent(),
+				getVelocity().getyComponent(), getRadius(), getDensity(), getMass());
+	}
+	
+	/** TODO
+	 */
+	@Override
+	public void terminate() {
+		if (!isTerminated()) {
+			if (getShip() != null) {
+				if (getShip().hasLoadedInMagazine(this))
+					getShip().removeAsLoadedBullet(this);
+				else if (getShip().hasFired(this))
+					getShip().removeAsFiredBullet(this);
+				setShip(null);
+			}
+			if (getWorld() != null) {
+				getWorld().removeEntity(this);
+				setWorld(null);
+			}
+			super.terminate();
+		}
 	}
 	
 	/**
@@ -116,6 +148,86 @@ public class Bullet extends Entity {
 	 */
 	private static double minimalRadius = 1;
 	
+	
+	/**
+	 * TODO
+	 * @return
+	 */
+	@Basic @Raw
+	public int getNbOfBounces() {
+		return nbOfBounces;
+	}
+	
+	public boolean canHaveAsNbOfBounces(int number) {
+		return (0 <= number) && (number <= getMaximalNbOfBounces());
+	}
+	
+	private void setNbOfBounces(int number) throws IllegalArgumentException {
+		if (!canHaveAsNbOfBounces(number))
+			throw new IllegalArgumentException();
+		nbOfBounces = number;
+	}
+	
+	private void stepNbOfBounces() throws IllegalMethodCallException {
+		try {
+			setNbOfBounces(getNbOfBounces() + 1);
+		}
+		catch (IllegalArgumentException exc) {
+			throw new IllegalMethodCallException();
+		}
+	}
+	
+	private void resetNbOfBounces() {
+		setNbOfBounces(0);
+	}
+	
+	private int nbOfBounces;
+	
+	
+	/**
+	 * Return the maximal number of bounces of this bullet.
+	 */
+	@Basic @Raw @Immutable
+	public int getMaximalNbOfBounces() {
+		return this.maximalNbOfBounces;
+	}
+	
+	/**
+	 * Check whether this bullet can have the given maximal number of bounces as its maximal number of bounces.
+	 *  
+	 * @param  maximalNbOfBounces
+	 *         The maximal number of bounces to check.
+	 * @return 
+	 *       | result == 0 <= maximalNbOfBounces
+	*/
+	@Raw
+	public boolean canHaveAsMaximalNbOfBounces(int maximalNbOfBounces) {
+		return 0 <= maximalNbOfBounces;
+	}
+	
+	/**
+	 * Variable registering the maximal number of bounces of this bullet.
+	 */
+	private final int maximalNbOfBounces = 2;
+	
+	
+	/** TODO
+	 */
+	@Override
+	public void bounceOfBoundary() throws IllegalMethodCallException {
+		if (getWorld() == null || !collidesWithBoundary())
+			throw new IllegalMethodCallException();
+		if (getNbOfBounces() > getMaximalNbOfBounces())
+			terminate();
+		else {
+			stepNbOfBounces();
+			if (collidesWithHorizontalBoundary())
+				setVelocity(getVelocity().getxComponent(), -getVelocity().getyComponent());
+			else if (collidesWithVerticalBoundary())
+				setVelocity(-getVelocity().getxComponent(), getVelocity().getyComponent());
+		}
+	}
+	
 	/**
 	 * Return the ship associated to this bullet, i.e. the ship that holds this bullet or fired it.
 	 */
@@ -190,13 +302,14 @@ public class Bullet extends Entity {
 	 * Set this bullet to the load configuration.
 	 * @post | if (getShip() != null)
 	 * 		 | 	then new.getPosition().equals(new Position(0, 0)) &&
-	 * 		 |			new.getVelocity().equals(new Velocity(0, 0))
+	 * 		 |			new.getVelocity().equals(new Velocity(0, 0)) && (new.getNbOfBounces() == 0)
 	 * @note This method must only be invoked in the method loadBullet() of the class Ship
 	 */
 	void setToLoadConfiguration() {
 		if (getShip() != null && getShip().hasLoadedInMagazine(this)) {
 			setPosition(0, 0);
 			setVelocity(0, 0);
+			resetNbOfBounces();
 		}
 	}
 	

@@ -44,12 +44,38 @@ public class World {
 		this.width = width;
 	}
 	
-
-//	public World(double height) {
-//		if (! isValidHeight(height))
-//			height = getMaxHeight();
-//		this.height = height;
-//	}
+	/**
+	 * Terminate this world.
+	 *
+	 * @post   This world  is terminated.
+	 *       | new.isTerminated()
+	 * @post   ...TODO
+	 *       | ...
+	 */
+	 public void terminate() {
+		 if (!isTerminated()) {
+			 Set<Entity> entitiesClone = new HashSet<>(getEntities());
+			 for (Entity entity: entitiesClone) {
+				 removeEntity(entity);
+				 entity.setWorld(null);
+			 }
+			 this.isTerminated = true;
+		 }
+	 }
+	 
+	 /**
+	  * Return a boolean indicating whether or not this world is terminated.
+	  */
+	 @Basic @Raw
+	 public boolean isTerminated() {
+		 return this.isTerminated;
+	 }
+	 
+	 /**
+	  * Variable registering whether this person is terminated.
+	  */
+	 private boolean isTerminated = false;
+	 
 	
 	/**
 	 * Return the height of this world.
@@ -152,7 +178,7 @@ public class World {
 	 * @return	| @see implementation
 	 */
 	public boolean boundariesSurround(Entity entity) {
-		if (entity == null)
+		if (entity == null || entity.isTerminated() || this.isTerminated())
 			return false;
 		return (entity.getPosition().getxComponent() >= entity.getRadius() * Entity.ACCURACY_FACTOR) && (entity.getPosition().getyComponent() >= 
 				entity.getRadius() * Entity.ACCURACY_FACTOR)
@@ -168,7 +194,7 @@ public class World {
 	 * @return	| result == (entity != null) && this.boundariesSurround(entity)
 	 */
 	public boolean canHaveAsEntity(Entity entity) {
-		return (entity != null) && this.boundariesSurround(entity);
+		return (entity != null) && !entity.isTerminated() && !this.isTerminated() && this.boundariesSurround(entity);
 	}
 	
 	/**
@@ -178,8 +204,12 @@ public class World {
 	 * 			|		canHaveAsEntity(entity) && (entity.getWorld == this) && (getEntityAt(entity.getPosition()) == entity) &&
 	 * 			|		(for each other in getEntities():
 	 * 			|			(entity == other) || !Entity.overlap(entity, other)))
+	 * 			|	&& (getOccupiedPositions().size() == getEntities().size())
 	 */
 	public boolean hasProperEntities() {
+		if (getOccupiedPositions().size() != getEntities().size())
+			//This means that at least one entity is the value of at least two different keys.
+			return false;
 		for(Entity entity: getEntities()) {
 			if(!canHaveAsEntity(entity) || (entity.getWorld() != this) || (getEntityAt(entity.getPosition()) != entity))
 				return false;
@@ -273,17 +303,21 @@ public class World {
 	 * 			| entity == null
 	 * @throws IllegalArgumentException
 	 * 			| !canHaveAsEntity(entity) || (entity.getWorld() != null) || hasAsEntity(entity)
-	 * @throws OverlapException
+	 * @throws OverlapException(entity, other)
 	 * 			| for some other in getEntities:
 	 * 			|	(entity != other) && Entity.overlap(entity, other)
 	 */
-	public void addEntity(Entity entity) throws NullPointerException, IllegalArgumentException, OverlapException {
+	public void addEntity(Entity entity) throws NullPointerException, IllegalArgumentException, OverlapException, IllegalStateException {
+		if (entity != null) {
+			for(Entity other: getEntities()) {
+				if((other != entity) && Entity.overlap(entity, other))
+					throw new OverlapException(entity, other);
+			}
+		}
+		if (this.isTerminated())
+			throw new IllegalStateException();
 		if (!canHaveAsEntity(entity) || (entity.getWorld() != null) || hasAsEntity(entity))
 			throw new IllegalArgumentException();
-		for(Entity other: getEntities()) {
-			if((other != entity) && Entity.overlap(entity, other))
-				throw new OverlapException();
-		}
 		entities.put(entity.getPosition(), entity);
 		entity.setWorld(this);
 	}
@@ -298,9 +332,9 @@ public class World {
 	 * 			| !hasAsEntity(entity)
 	 * @throws IllegalMethodCallException
 	 * 			| //TODO
-	 * @note Ships can only be removed if they have no more fired bullets in this world. Similarly, fired bullets can only be removed
-	 * 			if their associated ship is null. To remove a ship or a bullet that does not satisfy these requirements, first end the
-	 * 			association between them.
+	 * @note Ships can only be removed if they have no more fired bullets in this world. Similarly, a fired bullet can only be removed
+	 * 			if its associated ship is null or it apparently collides with its associated ship. To remove a ship or a bullet that does
+	 * 			not satisfy these requirements, first end the association between them.
 	 */
 	public void removeEntity(Entity entity) throws NullPointerException, IllegalArgumentException, IllegalMethodCallException {
 		if (entity == null)
@@ -308,7 +342,8 @@ public class World {
 		if (!hasAsEntity(entity))
 			throw new IllegalArgumentException();
 		if ((entity instanceof Ship && ((Ship)entity).getNbOfFiredBullets() != 0) ||
-				(entity instanceof Bullet && ((Bullet)entity).getShip() != null))
+				(entity instanceof Bullet && ((Bullet)entity).getShip() != null) &&
+				!Entity.apparentlyCollide(entity, ((Bullet)entity).getShip()))
 			throw new IllegalMethodCallException();
 		entities.remove(entity.getPosition());
 		entity.setWorld(null);
@@ -331,4 +366,93 @@ public class World {
      *        |   (entities.get(key).getPosition().equals(key))
 	 */
 	private Map<Position, Entity> entities = new HashMap<>();
+	
+	
+	/**
+	 * TODO write specification (declaratively is possible)
+	 * @return
+	 * @throws IllegalMethodCallException
+	 */
+	public double getTimeToFirstCollision() throws IllegalMethodCallException, IllegalStateException {
+		if (isTerminated())
+			throw new IllegalStateException();
+		if (getEntities().isEmpty())
+			throw new IllegalMethodCallException();
+		double result = Double.POSITIVE_INFINITY;
+		for (Entity entity: getEntities()) {
+			result = Math.min(result, entity.getTimeToCollisionWithBoundary());
+			for (Entity other: getEntities()) {
+				if (other != entity)
+					result = Math.min(result, Entity.getTimeToCollision(entity, other));
+					//The method getTimeToCollision cannot throw an exception because of the class invariants of world.
+			}
+		}
+		return result;
+	}
+	
+	private void advance(double duration) throws IllegalArgumentException, IllegalStateException {
+		if (isTerminated())
+			throw new IllegalStateException();
+		if (duration > getTimeToFirstCollision())
+			throw new IllegalArgumentException();
+		for (Entity entity: getEntities()) {
+			entity.move(duration);
+			if (entity instanceof Ship)
+				((Ship)entity).thrust(duration);
+		}
+	}
+	
+	public Set<Set<Entity>> getCollisions() {
+		Set<Set<Entity>> result = new HashSet<>();
+		for (Entity entity: getEntities()) {
+			if (entity.collidesWithBoundary()) {
+				Set<Entity> tempSet = new HashSet<>();
+				tempSet.add(entity);
+				result.add(tempSet);
+			}
+			for (Entity other: getEntities()) {
+				if ((other != entity) && Entity.apparentlyCollide(entity, other)){
+					Set<Entity> tempSet = new HashSet<>();
+					tempSet.add(entity);
+					tempSet.add(other);
+					result.add(tempSet);
+				}
+			}
+		}
+		return result;
+	}
+	
+	private void resolveCollisions() throws IllegalStateException {
+		if (isTerminated())
+			throw new IllegalStateException();
+		Set<Set<Entity>> collisionSet = getCollisions();
+		for (Set<Entity> collision: collisionSet) {
+			if (collision.size() == 1) {
+				Entity entity = (Entity)collision.toArray()[0];
+				entity.bounceOfBoundary();
+			}
+			else if (collision.size() == 2) {
+				Entity entity1 = (Entity)collision.toArray()[0];
+				Entity entity2 = (Entity)collision.toArray()[1];
+				Entity.resolveCollision(entity1, entity2);
+			}
+			else
+				throw new IllegalCollisionException();
+		}
+	}
+	
+	public void evolve(double duration) throws IllegalArgumentException, IllegalMethodCallException, IllegalStateException {
+		if (isTerminated())
+			throw new IllegalStateException();
+		if (duration < 0)
+			throw new IllegalArgumentException();
+		double timeToFirstCollision = getTimeToFirstCollision();
+		while (timeToFirstCollision <= duration) {
+			advance(timeToFirstCollision);
+			resolveCollisions();
+			duration -= timeToFirstCollision;
+			timeToFirstCollision = getTimeToFirstCollision();
+		}
+		advance(duration);
+	}
 }

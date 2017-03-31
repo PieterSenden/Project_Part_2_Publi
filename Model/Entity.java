@@ -18,12 +18,14 @@ import be.kuleuven.cs.som.annotate.*;
  *       	| canHaveAsRadius(this.getRadius())
  * @invar  The speed limit of this entity is a valid speed limit for any entity.
  *     	    | isValidSpeedLimit(this.getSpeedLimit())
+ * @invar  Each entity has a proper world.
+ * 			| hasProperWorld()
  * 
  * @author Joris Ceulemans & Pieter Senden
  * @version 2.0
  */
 
-abstract class Entity {
+public abstract class Entity {
 	
 	/**
 	 * Initialize this new entity with given position, velocity, radius, density and mass.
@@ -80,6 +82,32 @@ abstract class Entity {
 	public abstract Entity copy();
 	
 	/**
+	 * Terminate this entity.
+	 *
+	 * @post   This entity  is terminated.
+	 *       | new.isTerminated()
+	 * @post   ...TODO
+	 *       | ...
+	 */
+	 public void terminate() {
+		 this.isTerminated = true;
+	 }
+	 
+	 /**
+	  * Return a boolean indicating whether or not this entity is terminated.
+	  */
+	 @Basic @Raw
+	 public boolean isTerminated() {
+		 return this.isTerminated;
+	 }
+	 
+	 /**
+	  * Variable registering whether this person is terminated.
+	  */
+	 private boolean isTerminated = false;
+	 
+	
+	/**
 	 * Return the position of this entity.
 	 */
 	@Basic @Raw
@@ -122,6 +150,8 @@ abstract class Entity {
 	public boolean canHaveAsPosition(double xComponent, double yComponent) {
 		if (getWorld() == null)
 			return true;
+		if (isTerminated())
+			return false;
 		return getWorld().boundariesSurround(this);
 	}
 	
@@ -138,7 +168,10 @@ abstract class Entity {
 	 * 			The given duration is strictly less than 0.
 	 * 			| duration < 0
 	 */
-	public void move(double duration) throws IllegalArgumentException, IllegalComponentException {
+	public void move(double duration) throws IllegalArgumentException, IllegalComponentException,
+														IllegalPositionException, IllegalStateException {
+		if (isTerminated())
+			throw new IllegalStateException();
 		setPosition(getPosition().move(getVelocity(), duration));
 	}
 	
@@ -154,8 +187,7 @@ abstract class Entity {
 	 * 			| @see implementation
 	 */
 	@Raw @Model
-	protected
-	void setPosition(double xComponent, double yComponent) throws IllegalComponentException, IllegalPositionException {
+	protected void setPosition(double xComponent, double yComponent) throws IllegalComponentException, IllegalPositionException {
 		setPosition(new Position(xComponent, yComponent));
 	}
 	
@@ -173,7 +205,9 @@ abstract class Entity {
 	 * 		 | ! canHaveAsPosition(position)
 	 */
 	@Raw @Model
-	protected void setPosition(Position position) throws IllegalComponentException, IllegalPositionException {
+	protected void setPosition(Position position) throws IllegalComponentException, IllegalPositionException, IllegalStateException {
+		if (isTerminated())
+			throw new IllegalStateException();
 		if (!canHaveAsPosition(position))
 			throw new IllegalPositionException();
 		this.position = position;
@@ -205,6 +239,8 @@ abstract class Entity {
 	 *       | @see implementation
 	 */
 	public boolean canHaveAsVelocity(Velocity velocity) {
+		if (isTerminated())
+			return false;
 		if (velocity == null)
 			return false;
 		if (velocity.getSpeed() > getSpeedLimit())
@@ -241,25 +277,27 @@ abstract class Entity {
 	 */
 	@Raw @Model
 	protected void setVelocity(double xComponent, double yComponent) {
-		Velocity tempVelocity;
-		try {
-			tempVelocity = new Velocity(xComponent, yComponent);
+		if (!isTerminated()) {
+			Velocity tempVelocity;
+			try {
+				tempVelocity = new Velocity(xComponent, yComponent);
+			}
+			catch(IllegalComponentException exc) {
+				if (getVelocity() == null)
+					tempVelocity = new Velocity(0, 0);
+				else
+					tempVelocity = getVelocity();
+			}
+			if (!canHaveAsVelocity(tempVelocity)) {
+				double speed = tempVelocity.getSpeed();
+				xComponent = xComponent * getSpeedLimit() / speed;
+				yComponent = yComponent * getSpeedLimit() / speed;
+				tempVelocity = new Velocity(xComponent, yComponent);
+				//No exceptions are thrown here, because if xComponent or yComponent would be an invalid component, an exception would already
+				//have been thrown and caught such that canHaveAsVelocity(tempVelocity) is always true.
+			}
+			this.velocity = tempVelocity;
 		}
-		catch(IllegalComponentException exc) {
-			if (getVelocity() == null)
-				tempVelocity = new Velocity(0, 0);
-			else
-				tempVelocity = getVelocity();
-		}
-		if (!canHaveAsVelocity(tempVelocity)) {
-			double speed = tempVelocity.getSpeed();
-			xComponent = xComponent * getSpeedLimit() / speed;
-			yComponent = yComponent * getSpeedLimit() / speed;
-			tempVelocity = new Velocity(xComponent, yComponent);
-			//No exceptions are thrown here, because if xComponent or yComponent would be an invalid component, an exception would already
-			//have been thrown and caught such that canHaveAsVelocity(tempVelocity) is always true.
-		}
-		this.velocity = tempVelocity;
 	}
 	
 	/**
@@ -332,7 +370,7 @@ abstract class Entity {
 	 * 		|	then new.getMass() == mass
 	 */
 	private void setMass(double mass) {
-		if (canHaveAsMass(mass))
+		if (canHaveAsMass(mass) && !isTerminated())
 			this.mass = mass;
 	}
 	
@@ -441,7 +479,9 @@ abstract class Entity {
 	 * 			One of the entities is not effective
 	 * 			| (entity1 == null) || (entity2 == null)
 	 */
-	public static double getDistanceBetweenCentres(Entity entity1, Entity entity2) throws NullPointerException {
+	public static double getDistanceBetweenCentres(Entity entity1, Entity entity2) throws NullPointerException, IllegalStateException {
+		if (entity1.isTerminated() || entity2.isTerminated())
+			throw new IllegalStateException();
 		return Position.getDistanceBetween(entity1.getPosition(), entity2.getPosition());
 	}
 	
@@ -462,7 +502,9 @@ abstract class Entity {
 	 * 			One of the entities is not effective
 	 * 			| (entity1 == null) || (entity2 == null)
 	 */
-	public static double getDistanceBetween(Entity entity1, Entity entity2) throws NullPointerException{
+	public static double getDistanceBetween(Entity entity1, Entity entity2) throws NullPointerException, IllegalStateException{
+		if (entity1.isTerminated() || entity2.isTerminated())
+			throw new IllegalStateException();
 		if ((entity1 != null) && (entity1 == entity2))
 			return 0;
 		return getDistanceBetweenCentres(entity1, entity2) - getSumOfRadii(entity1, entity2);
@@ -486,7 +528,9 @@ abstract class Entity {
 	 * 			One of the entities is not effective
 	 * 			| (entity1 == null) || (entity2 == null)
 	 */
-	public static boolean overlap(Entity entity1, Entity entity2) throws NullPointerException {
+	public static boolean overlap(Entity entity1, Entity entity2) throws NullPointerException, IllegalStateException {
+		if (entity1.isTerminated() || entity2.isTerminated())
+			throw new IllegalStateException();
 		if (entity1 != null && entity1 == entity2)
 			return true;
 		return (Entity.getDistanceBetween(entity1, entity2) <= (ACCURACY_FACTOR - 1) * (entity1.getRadius() + entity2.getRadius()));
@@ -505,7 +549,9 @@ abstract class Entity {
 	 * 			The given entity is not effective
 	 * 		| other == null
 	 */
-	public boolean surrounds(Entity other) throws NullPointerException {
+	public boolean surrounds(Entity other) throws NullPointerException, IllegalStateException {
+		if (this.isTerminated() || other.isTerminated())
+			throw new IllegalStateException();
 		return (this.getRadius() - getDistanceBetweenCentres(this, other) ) >= other.getRadius() * ACCURACY_FACTOR;
 	}
 	
@@ -527,7 +573,9 @@ abstract class Entity {
 	 * 			|	then result == (ACCURACY_FACTOR * getSumOfRadii(entity1, entity2) <= getDistanceBetweenCentres(entity1, entity2)) &&
 	 *			|		(getDistanceBetweenCentres(entity1, entity2) <= (2 - ACCURACY_FACTOR) * getSumOfRadii(entity1, entity2))
 	 */
-	public static boolean apparentlyCollide(Entity entity1, Entity entity2) {
+	public static boolean apparentlyCollide(Entity entity1, Entity entity2) throws IllegalStateException {
+		if (entity1.isTerminated() || entity2.isTerminated())
+			throw new IllegalStateException();
 		if (entity1 == null || entity2 == null || entity1.getWorld() == null || entity2.getWorld() == null ||
 				entity1.getWorld() != entity2.getWorld())
 			return false;
@@ -556,7 +604,9 @@ abstract class Entity {
 	 * 			|		Position.getDistanceBetween(entity1.getPosition().move(entity1.getVelocity(), duration),
 	 * 			|											 entity2.getPosition().move(entity2.getVelocity(), duration)))
 	 */
-	public static boolean collideAfterMove(Entity entity1, Entity entity2, double duration) {
+	public static boolean collideAfterMove(Entity entity1, Entity entity2, double duration) throws IllegalStateException {
+		if (entity1.isTerminated() || entity2.isTerminated())
+			throw new IllegalStateException();
 		if (entity1 == null || entity2 == null || entity1.getWorld() == null || entity2.getWorld() == null ||
 																							entity1.getWorld() != entity2.getWorld())
 			return false;
@@ -585,7 +635,10 @@ abstract class Entity {
 	 * 			The entities overlap
 	 * 			| overlap(entity1, entity2)
 	 */
-	public static double getTimeToCollision(Entity entity1, Entity entity2) throws NullPointerException, OverlapException {
+	public static double getTimeToCollision(Entity entity1, Entity entity2) throws NullPointerException, 
+																		OverlapException, IllegalStateException {
+		if (entity1.isTerminated() || entity2.isTerminated())
+			throw new IllegalStateException();
 		if (overlap(entity1, entity2))
 			throw new OverlapException();
 		
@@ -632,7 +685,10 @@ abstract class Entity {
 	 * 			The entities overlap
 	 * 			| overlap(entity1, entity2)
 	 */
-	public static Position getCollisionPosition(Entity entity1, Entity entity2) throws NullPointerException, OverlapException{
+	public static Position getCollisionPosition(Entity entity1, Entity entity2) throws NullPointerException, 
+																OverlapException, IllegalStateException {
+		if (entity1.isTerminated() || entity2.isTerminated())
+			throw new IllegalStateException();
 		if (overlap(entity1, entity2))
 			throw new OverlapException();
 		
@@ -657,14 +713,46 @@ abstract class Entity {
 		
 	}
 	
-//	/**
-//	 * Check whether this entity apparently collides with the boundary of its world.
-//	 * @return true iff this entity cannot have its position as position.
-//	 * 			| @see implementation
-//	 */
-//	public boolean apparentlyCollidesWithBoundary() {
-//		return !canHaveAsPosition(getPosition().getxComponent(), getPosition().getyComponent());
-//	}
+	/**
+	 * Check whether this entity collides with a horizontal boundary of its world.
+	 * @return TODO
+	 * 			| @see implementation
+	 */
+	public boolean collidesWithHorizontalBoundary() throws IllegalStateException {
+		if (this.isTerminated())
+			throw new IllegalStateException();
+		if (getWorld() == null)
+			return false;
+		return (getPosition().getyComponent() <= getRadius())
+				|| (getWorld().getHeight() - getPosition().getyComponent() <= getRadius());
+	}
+	
+	/**
+	 * Check whether this entity collides with a horizontal boundary of its world.
+	 * @return TODO
+	 * 			| @see implementation
+	 */
+	public boolean collidesWithVerticalBoundary() throws IllegalStateException {
+		if (this.isTerminated())
+			throw new IllegalStateException();
+		if (getWorld() == null)
+			return false;
+		return (getPosition().getxComponent() <= getRadius())
+				|| (getWorld().getWidth() - getPosition().getxComponent() <= getRadius());
+	}
+	
+	/**
+	 * Check whether this entity collides with the boundary of its world.
+	 * @return true iff this entity collides with a horizontal or vertical boundary.
+	 * 			| @see implementation
+	 */
+	public boolean collidesWithBoundary() throws IllegalStateException {
+		if (this.isTerminated())
+			throw new IllegalStateException();
+		if (getWorld() == null)
+			return false;
+		return collidesWithHorizontalBoundary() || collidesWithVerticalBoundary();
+	}
 	
 	/**
 	 * Determine the time after which, if ever, this entity will collide with the boundary of its world.
@@ -679,19 +767,21 @@ abstract class Entity {
 	 * 			|				canHaveAsPosition(getPosition().move(getVelocity(), t).getxComponent(),
 	 * 			|						getPosition().move(getVelocity(), t).getyComponent()))
 	 */
-	public double getTimeToCollisionWithBoundary() {
+	public double getTimeToCollisionWithBoundary() throws IllegalStateException {
+		if (this.isTerminated())
+			throw new IllegalStateException();
 		if (getWorld() == null)
 			return Double.POSITIVE_INFINITY;
 		double result = Double.POSITIVE_INFINITY;
 		if (getVelocity().getxComponent() <= 0)
-			result = Double.min(result, -(getPosition().getxComponent() - ACCURACY_FACTOR * getRadius()) / getVelocity().getxComponent());
+			result = Double.min(result, -(getPosition().getxComponent() - getRadius()) / getVelocity().getxComponent());
 		else 
-			result = Double.min(result, (getWorld().getWidth() - getPosition().getxComponent() - ACCURACY_FACTOR * getRadius())
+			result = Double.min(result, (getWorld().getWidth() - getPosition().getxComponent() - getRadius())
 																										/ getVelocity().getxComponent());
 		if (getVelocity().getyComponent() <= 0)
-			result = Double.min(result, -(getPosition().getyComponent() - ACCURACY_FACTOR * getRadius()) / getVelocity().getyComponent());
+			result = Double.min(result, -(getPosition().getyComponent() - getRadius()) / getVelocity().getyComponent());
 		else 
-			result = Double.min(result, (getWorld().getHeight() - getPosition().getyComponent() - ACCURACY_FACTOR * getRadius())
+			result = Double.min(result, (getWorld().getHeight() - getPosition().getyComponent() - getRadius())
 																										/ getVelocity().getyComponent());
 		return result;
 	}
@@ -704,12 +794,55 @@ abstract class Entity {
 	 * @return the position where this entity collides with its world's boundary.
 	 * 			| @see implementation
 	 */
-	public Position getCollisionWithBoundaryPosition() {
+	public Position getCollisionWithBoundaryPosition() throws IllegalStateException {
+		if (this.isTerminated())
+			throw new IllegalStateException();
 		if (getWorld() == null || getTimeToCollisionWithBoundary() == Double.POSITIVE_INFINITY)
 			return null;
 		return getPosition().move(getVelocity(), getTimeToCollisionWithBoundary());
 	}
 	
+	
+	/**
+	 * TODO specification en eventueel abstract met een prime object (robuuster)
+	 * @param entity1
+	 * @param entity2
+	 * @throws IllegalMethodCallException
+	 */
+	public static void resolveCollision(Entity entity1, Entity entity2) throws IllegalMethodCallException, IllegalStateException {
+		if (entity1.isTerminated() || entity2.isTerminated())
+			throw new IllegalStateException();
+		if (entity1.getWorld() == null || entity1.getWorld() != entity2.getWorld() || !Entity.apparentlyCollide(entity1, entity2))
+			throw new IllegalMethodCallException();
+		if (entity1 instanceof Ship && entity2 instanceof Ship) {
+			Ship.resolveCollisionBetweenShips((Ship)entity1, (Ship)entity2);
+		}
+		else if (entity1 instanceof Bullet && entity2 instanceof Bullet) {
+			entity1.terminate();
+			entity2.terminate();
+		}
+		else if (entity1 instanceof Ship && entity2 instanceof Bullet) {
+			if (((Ship)entity1).hasFired((Bullet)entity2))
+				((Ship)entity1).loadBullet((Bullet)entity2);
+			else {
+				entity1.terminate();
+				entity2.terminate();
+			}
+		}
+		else if (entity1 instanceof Bullet && entity2 instanceof Ship) {
+			if (((Ship)entity2).hasFired((Bullet)entity1))
+				((Ship)entity2).loadBullet((Bullet)entity1);
+			else {
+				entity1.terminate();
+				entity2.terminate();
+			}
+		}
+	}
+	
+	/**TODO
+	 * @throws IllegalMethodCallException
+	 */
+	public abstract void bounceOfBoundary() throws IllegalMethodCallException;
 	
 	/**
 	 * Check whether this entity can have the given world as world.
@@ -718,6 +851,8 @@ abstract class Entity {
 	 * @return | @see implementation
 	 */
 	public boolean canHaveAsWorld(World world) {
+		if (isTerminated())
+			return false;
 		return (world == null) || world.canHaveAsEntity(this);
 	}
 	
@@ -731,6 +866,8 @@ abstract class Entity {
 	public boolean hasProperWorld() {
 		if (getWorld() == null)
 			return true;
+		if (!canHaveAsWorld(getWorld()))
+			return false;
 		if (getWorld().getEntityAt(this.getPosition()) != this)
 			return false;
 		else {
@@ -754,10 +891,23 @@ abstract class Entity {
 	 * Set the world of this entity to the given world.
 	 * @param world
 	 * 			The new world for this entity.
+	 * @post The new world of this entity is equal to the given world.
+	 * 			| new.getWorld() == world
+	 * @throws IllegalMethodCallException
+	 * 			(The given world is effective but does not yet contain this entity) or 
+	 * 			(the given world is not effective and the world of this entity is effective and still contains this entity).
+	 * 			| (world != null && !world.hasAsEntity(this)) ||
+	 * 			|	(world == null && getWorld() != null && getWorld().hasAsEntity(this))
 	 * 
 	 */
-	public void setWorld(World world) {
-		
+	void setWorld(World world) throws IllegalMethodCallException, IllegalStateException {
+		if (isTerminated())
+			throw new IllegalStateException();
+		if (world != null && (!world.hasAsEntity(this) || world.isTerminated()))
+			throw new IllegalMethodCallException();
+		if (world == null && getWorld() != null && getWorld().hasAsEntity(this))
+			throw new IllegalMethodCallException();
+		this.world = world;
 	}
 	
 	/**
