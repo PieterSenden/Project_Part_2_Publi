@@ -189,8 +189,8 @@ public class World {
 			return false;
 		return (entity.getPosition().getxComponent() >= entity.getRadius() * Entity.ACCURACY_FACTOR) && (entity.getPosition().getyComponent() >= 
 				entity.getRadius() * Entity.ACCURACY_FACTOR)
-				&& (this.getHeight() - entity.getPosition().getxComponent() >= entity.getRadius() * Entity.ACCURACY_FACTOR)
-				&& (this.getWidth() - entity.getPosition().getyComponent() >= entity.getRadius() * Entity.ACCURACY_FACTOR);
+				&& (this.getHeight() - entity.getPosition().getyComponent() >= entity.getRadius() * Entity.ACCURACY_FACTOR)
+				&& (this.getWidth() - entity.getPosition().getxComponent() >= entity.getRadius() * Entity.ACCURACY_FACTOR);
 	}
 	
 	
@@ -478,7 +478,7 @@ public class World {
 		if (duration < 0)
 			throw new IllegalArgumentException();
 		double timeToFirstCollision = getTimeToFirstCollision();
-		while (timeToFirstCollision <= duration && timeToFirstCollision > 0) {
+		while (timeToFirstCollision < duration && timeToFirstCollision > 0) {
 			advance(timeToFirstCollision);
 			resolveCollisions();
 			duration -= timeToFirstCollision;
