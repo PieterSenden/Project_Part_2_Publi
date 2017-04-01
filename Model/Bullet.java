@@ -162,7 +162,9 @@ public class Bullet extends Entity {
 		return (0 <= number) && (number <= getMaximalNbOfBounces());
 	}
 	
-	private void setNbOfBounces(int number) throws IllegalArgumentException {
+	private void setNbOfBounces(int number) throws IllegalStateException, IllegalArgumentException {
+		if (isTerminated())
+			throw new IllegalStateException();
 		if (!canHaveAsNbOfBounces(number))
 			throw new IllegalArgumentException();
 		nbOfBounces = number;
@@ -217,7 +219,7 @@ public class Bullet extends Entity {
 	public void bounceOfBoundary() throws IllegalMethodCallException {
 		if (getWorld() == null || !collidesWithBoundary())
 			throw new IllegalMethodCallException();
-		if (getNbOfBounces() > getMaximalNbOfBounces())
+		if (getNbOfBounces() >= getMaximalNbOfBounces())
 			terminate();
 		else {
 			stepNbOfBounces();

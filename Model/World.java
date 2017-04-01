@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.Set;
 
 import asteroids.model.exceptions.*;
+import asteroids.part2.CollisionListener;
 import be.kuleuven.cs.som.annotate.*;
 
 /**
@@ -189,8 +190,8 @@ public class World {
 			return false;
 		return (entity.getPosition().getxComponent() >= entity.getRadius() * Entity.ACCURACY_FACTOR) && (entity.getPosition().getyComponent() >= 
 				entity.getRadius() * Entity.ACCURACY_FACTOR)
-				&& (this.getHeight() - entity.getPosition().getxComponent() >= entity.getRadius() * Entity.ACCURACY_FACTOR)
-				&& (this.getWidth() - entity.getPosition().getyComponent() >= entity.getRadius() * Entity.ACCURACY_FACTOR);
+				&& (this.getHeight() - entity.getPosition().getyComponent() >= entity.getRadius() * Entity.ACCURACY_FACTOR)
+				&& (this.getWidth() - entity.getPosition().getxComponent() >= entity.getRadius() * Entity.ACCURACY_FACTOR);
 	}
 	
 	
@@ -356,6 +357,18 @@ public class World {
 		entity.setWorld(null);
 	}
 	
+	private void setEntities(Set<Entity> entities) {
+		Map<Position,Entity> newEntities = new HashMap<>();
+		for (Entity entity: entities) {
+			if (!canHaveAsEntity(entity))
+				throw new IllegalArgumentException();
+			newEntities.put(entity.getPosition(), entity);
+		}
+		this.entities = newEntities;
+		if (!hasProperEntities())
+			throw new IllegalArgumentException();
+	}
+	
 	/**
 	 * A map registering the entities contained in this world.
 	 * 
@@ -394,6 +407,9 @@ public class World {
 					//The method getTimeToCollision cannot throw an exception because of the class invariants of world.
 			}
 		}
+		if (result < 0)
+			//result can be negative due to rounding errors.
+			result = 0;
 		return result;
 	}
 	
@@ -425,12 +441,13 @@ public class World {
 		if (isTerminated())
 			throw new IllegalStateException();
 		if (duration > getTimeToFirstCollision())
-			throw new IllegalArgumentException();
+			throw new IllegalArgumentException(Double.toString(getTimeToFirstCollision()));
 		for (Entity entity: getEntities()) {
 			entity.move(duration);
 			if (entity instanceof Ship)
 				((Ship)entity).thrust(duration);
 		}
+		setEntities(getEntities());
 	}
 	
 	public Set<Set<Entity>> getCollisions() {
@@ -453,7 +470,7 @@ public class World {
 		return result;
 	}
 	
-	private void resolveCollisions() throws IllegalStateException {
+	private void resolveCollisions(CollisionListener collisionListener) throws IllegalStateException {
 		if (isTerminated())
 			throw new IllegalStateException();
 		Set<Set<Entity>> collisionSet = getCollisions();
@@ -461,10 +478,12 @@ public class World {
 			if (collision.size() == 1) {
 				Entity entity = (Entity)collision.toArray()[0];
 				entity.bounceOfBoundary();
+				showCollision(collisionListener, entity);
 			}
 			else if (collision.size() == 2) {
 				Entity entity1 = (Entity)collision.toArray()[0];
 				Entity entity2 = (Entity)collision.toArray()[1];
+				showCollision(collisionListener, entity1, entity2);
 				Entity.resolveCollision(entity1, entity2);
 			}
 			else
@@ -472,15 +491,28 @@ public class World {
 		}
 	}
 	
-	public void evolve(double duration) throws IllegalArgumentException, IllegalMethodCallException, IllegalStateException {
+	public void showCollision(CollisionListener collisionListener, Entity entity) {
+		collisionListener.boundaryCollision(entity, entity.getPosition().getxComponent(), entity.getPosition().getyComponent());
+	}
+	
+	public void showCollision(CollisionListener collisionListener, Entity entity1, Entity entity2) {
+		if (!((entity1 instanceof Bullet && entity2 instanceof Ship && ((Ship)entity2).hasFired((Bullet)entity1)) ||
+				(entity2 instanceof Bullet && entity1 instanceof Ship && ((Ship)entity1).hasFired((Bullet)entity2)))) {
+			Position collisionPosition = Entity.getCollisionPosition(entity1, entity2);
+			collisionListener.objectCollision(entity1, entity2, collisionPosition.getxComponent(), collisionPosition.getyComponent());
+		}
+	}
+	
+	public void evolve(double duration, CollisionListener collisionListener) throws IllegalArgumentException, IllegalMethodCallException,
+																								IllegalStateException {
 		if (isTerminated())
 			throw new IllegalStateException();
 		if (duration < 0)
 			throw new IllegalArgumentException();
 		double timeToFirstCollision = getTimeToFirstCollision();
-		while (timeToFirstCollision <= duration && timeToFirstCollision > 0) {
+		while (timeToFirstCollision <= duration) {
 			advance(timeToFirstCollision);
-			resolveCollisions();
+			resolveCollisions(collisionListener);
 			duration -= timeToFirstCollision;
 			timeToFirstCollision = getTimeToFirstCollision();
 		}

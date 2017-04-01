@@ -168,25 +168,26 @@ public abstract class Entity {
 	 * 			The given duration is strictly less than 0.
 	 * 			| duration < 0
 	 */
-	public void move(double duration) throws IllegalArgumentException, IllegalComponentException, IllegalStateException {
+	public void move(double duration) throws IllegalArgumentException, IllegalComponentException, IllegalStateException, 
+																							IllegalPositionException {
 		if (isTerminated())
 			throw new IllegalStateException();
-		try {
-			setPosition(getPosition().move(getVelocity(), duration));
-		}
-		catch (IllegalPositionException exc) {
-			Position newCollidingPosition = getPosition().move(getVelocity(), duration);
-			Position newPosition = null;
-			if (this.getPosition().getxComponent() <= this.getRadius() * Entity.ACCURACY_FACTOR)
-				newPosition = new Position(newCollidingPosition.getxComponent() + (1-ACCURACY_FACTOR)/2 * getRadius(), newCollidingPosition.getyComponent());
-			else if (this.getPosition().getyComponent() <= this.getRadius() * Entity.ACCURACY_FACTOR)
-				newPosition = new Position(newCollidingPosition.getxComponent(), newCollidingPosition.getyComponent() + (1-ACCURACY_FACTOR)/2 * getRadius());
-			else if (getWorld().getHeight() - this.getPosition().getyComponent() <= this.getRadius() * Entity.ACCURACY_FACTOR)
-				newPosition = new Position(newCollidingPosition.getxComponent(), newCollidingPosition.getyComponent() - (1-ACCURACY_FACTOR)/2 * getRadius());
-			else if (getWorld().getWidth() - this.getPosition().getyComponent() >= this.getRadius() * Entity.ACCURACY_FACTOR)
-				newPosition = new Position(newCollidingPosition.getxComponent() - (1-ACCURACY_FACTOR)/2 * getRadius(), newCollidingPosition.getyComponent());
-			setPosition(newPosition);
-		}
+//		try {
+		setPosition(getPosition().move(getVelocity(), duration));
+//		}
+//		catch (IllegalPositionException exc) {
+//			Position newCollidingPosition = getPosition().move(getVelocity(), duration);
+//			Position newPosition = null;
+//			if (this.getPosition().getxComponent() <= this.getRadius() * Entity.ACCURACY_FACTOR)
+//				newPosition = new Position(newCollidingPosition.getxComponent() + (1-ACCURACY_FACTOR)/2 * getRadius(), newCollidingPosition.getyComponent());
+//			else if (this.getPosition().getyComponent() <= this.getRadius() * Entity.ACCURACY_FACTOR)
+//				newPosition = new Position(newCollidingPosition.getxComponent(), newCollidingPosition.getyComponent() + (1-ACCURACY_FACTOR)/2 * getRadius());
+//			else if (getWorld().getHeight() - this.getPosition().getyComponent() <= this.getRadius() * Entity.ACCURACY_FACTOR)
+//				newPosition = new Position(newCollidingPosition.getxComponent(), newCollidingPosition.getyComponent() - (1-ACCURACY_FACTOR)/2 * getRadius());
+//			else if (getWorld().getWidth() - this.getPosition().getyComponent() >= this.getRadius() * Entity.ACCURACY_FACTOR)
+//				newPosition = new Position(newCollidingPosition.getxComponent() - (1-ACCURACY_FACTOR)/2 * getRadius(), newCollidingPosition.getyComponent());
+//			setPosition(newPosition);
+//		}
 	}
 	
 	
@@ -671,7 +672,10 @@ public abstract class Entity {
 							(Math.pow(Math.hypot(dx, dy),  2) - Math.pow(sumOfRadii, 2));
 		if (discriminant <= 0)
 			return Double.POSITIVE_INFINITY;
-		return - (dvDotdr + Math.sqrt(discriminant)) / Math.pow(Math.hypot(dvx, dvy), 2);
+		double result = - (dvDotdr + Math.sqrt(discriminant)) / Math.pow(Math.hypot(dvx, dvy), 2);
+		if (result < 0)
+			return 0;
+		return result;
 	}
 	
 	/**
@@ -737,8 +741,8 @@ public abstract class Entity {
 			throw new IllegalStateException();
 		if (getWorld() == null)
 			return false;
-		return (getPosition().getyComponent() <= getRadius())
-				|| (getWorld().getHeight() - getPosition().getyComponent() <= getRadius());
+		return (getPosition().getyComponent() <= getRadius() * (2 - ACCURACY_FACTOR))
+				|| (getWorld().getHeight() - getPosition().getyComponent() <= getRadius() * (2 - ACCURACY_FACTOR));
 	}
 	
 	/**
@@ -751,8 +755,8 @@ public abstract class Entity {
 			throw new IllegalStateException();
 		if (getWorld() == null)
 			return false;
-		return (getPosition().getxComponent() <= getRadius())
-				|| (getWorld().getWidth() - getPosition().getxComponent() <= getRadius());
+		return (getPosition().getxComponent() <= getRadius() * (2 - ACCURACY_FACTOR))
+				|| (getWorld().getWidth() - getPosition().getxComponent() <= getRadius() * (2 - ACCURACY_FACTOR));
 	}
 	
 	/**

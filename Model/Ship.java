@@ -342,7 +342,7 @@ public class Ship extends Entity {
 	/**
 	 * Variable registering the thruster force of this ship.
 	 */
-	private double thrusterForce = 1.1e21;
+	private double thrusterForce = 1.1e20;
 	
 	
 	/**
@@ -446,8 +446,8 @@ public class Ship extends Entity {
 		double Jx = J * dx / sumOfRadii;
 		double Jy = J * dy / sumOfRadii;
 		
-		ship1.setVelocity(ship1.getVelocity().getxComponent() + Jx / m1, ship1.getVelocity().getyComponent() + Jy / m1);
-		ship1.setVelocity(ship2.getVelocity().getxComponent() - Jx / m2, ship2.getVelocity().getyComponent() - Jy / m2);
+		ship1.setVelocity(ship1.getVelocity().getxComponent() - Jx / m1, ship1.getVelocity().getyComponent() - Jy / m1);
+		ship2.setVelocity(ship2.getVelocity().getxComponent() + Jx / m2, ship2.getVelocity().getyComponent() + Jy / m2);
 	}
 	
 	/**
