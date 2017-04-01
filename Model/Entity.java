@@ -161,18 +161,32 @@ public abstract class Entity {
 	 * 
 	 * @param duration
 	 * 			The length of the time interval during which the entity is moved.
-	 * @effect The new position of this entity is set to the position that is th'e result of the position of this entity moved with
+	 * @effect The new position of this entity is set to the position that is the result of the position of this entity moved with
 	 * 			the velocity of this entity and during the given duration.
 	 * 			| @see implementation
 	 * @throws IllegalArgumentException
 	 * 			The given duration is strictly less than 0.
 	 * 			| duration < 0
 	 */
-	public void move(double duration) throws IllegalArgumentException, IllegalComponentException,
-														IllegalPositionException, IllegalStateException {
+	public void move(double duration) throws IllegalArgumentException, IllegalComponentException, IllegalStateException {
 		if (isTerminated())
 			throw new IllegalStateException();
-		setPosition(getPosition().move(getVelocity(), duration));
+		try {
+			setPosition(getPosition().move(getVelocity(), duration));
+		}
+		catch (IllegalPositionException exc) {
+			Position newCollidingPosition = getPosition().move(getVelocity(), duration);
+			Position newPosition = null;
+			if (this.getPosition().getxComponent() <= this.getRadius() * Entity.ACCURACY_FACTOR)
+				newPosition = new Position(newCollidingPosition.getxComponent() + (1-ACCURACY_FACTOR)/2 * getRadius(), newCollidingPosition.getyComponent());
+			else if (this.getPosition().getyComponent() <= this.getRadius() * Entity.ACCURACY_FACTOR)
+				newPosition = new Position(newCollidingPosition.getxComponent(), newCollidingPosition.getyComponent() + (1-ACCURACY_FACTOR)/2 * getRadius());
+			else if (getWorld().getHeight() - this.getPosition().getyComponent() <= this.getRadius() * Entity.ACCURACY_FACTOR)
+				newPosition = new Position(newCollidingPosition.getxComponent(), newCollidingPosition.getyComponent() - (1-ACCURACY_FACTOR)/2 * getRadius());
+			else if (getWorld().getWidth() - this.getPosition().getyComponent() >= this.getRadius() * Entity.ACCURACY_FACTOR)
+				newPosition = new Position(newCollidingPosition.getxComponent() - (1-ACCURACY_FACTOR)/2 * getRadius(), newCollidingPosition.getyComponent());
+			setPosition(newPosition);
+		}
 	}
 	
 	
