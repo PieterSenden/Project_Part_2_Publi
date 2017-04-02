@@ -309,7 +309,7 @@ public class Bullet extends Entity {
 	 */
 	void setToLoadConfiguration() {
 		if (getShip() != null && getShip().hasLoadedInMagazine(this)) {
-			setPosition(0, 0);
+			setPosition(getShip().getPosition());
 			setVelocity(0, 0);
 			resetNbOfBounces();
 		}

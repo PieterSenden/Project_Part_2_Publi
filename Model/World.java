@@ -402,9 +402,13 @@ public class World {
 		for (Entity entity: getEntities()) {
 			result = Math.min(result, entity.getTimeToCollisionWithBoundary());
 			for (Entity other: getEntities()) {
-				if (other != entity)
-					result = Math.min(result, Entity.getTimeToCollision(entity, other));
+				if (other != entity) {
+					if (Entity.overlap(entity, other))
+						result = 0;
+					else
+						result = Math.min(result, Entity.getTimeToCollision(entity, other));
 					//The method getTimeToCollision cannot throw an exception because of the class invariants of world.
+				}
 			}
 		}
 		if (result < 0)
@@ -440,7 +444,9 @@ public class World {
 	private void advance(double duration) throws IllegalArgumentException, IllegalStateException {
 		if (isTerminated())
 			throw new IllegalStateException();
-		if (duration > getTimeToFirstCollision())
+		double timeToFirstCollision = getTimeToFirstCollision();
+		if (duration > timeToFirstCollision && timeToFirstCollision >= 1e-10)
+			//It is possible that due to rounding issues, timeToFirstCollision is smaller than 1e-10 and we still want to advance this world.
 			throw new IllegalArgumentException(Double.toString(getTimeToFirstCollision()));
 		for (Entity entity: getEntities()) {
 			entity.move(duration);

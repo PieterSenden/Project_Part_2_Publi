@@ -124,6 +124,31 @@ public class Ship extends Entity {
 	}
 	
 	/**
+	 * TODO
+	 */
+	@Override
+	protected void setPosition(double xComponent, double yComponent) throws IllegalComponentException, IllegalPositionException {
+		setPosition(new Position(xComponent, yComponent));
+	}
+	
+	/**
+	 * TODO
+	 */
+	@Override
+	protected void setPosition(Position position) {
+		if (isTerminated())
+			throw new IllegalStateException();
+		if (!canHaveAsPosition(position))
+			throw new IllegalPositionException();
+		super.setPosition(position);
+		if (this.magazine != null) {
+			for (Bullet bullet: getMagazine()) {
+				bullet.setPosition(position);
+			}
+		}
+	}
+	
+	/**
 	 * Return the orientation of this ship in radians.
 	 */
 	@Basic @Raw

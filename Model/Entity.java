@@ -548,7 +548,7 @@ public abstract class Entity {
 			throw new IllegalStateException();
 		if (entity1 != null && entity1 == entity2)
 			return true;
-		return (Entity.getDistanceBetween(entity1, entity2) <= (ACCURACY_FACTOR - 1) * (entity1.getRadius() + entity2.getRadius()));
+		return (Entity.getDistanceBetween(entity1, entity2) <= (ACCURACY_FACTOR - 1) * getSumOfRadii(entity1, entity2));
 	}
 	
 	/**
@@ -711,19 +711,24 @@ public abstract class Entity {
 			throw new OverlapException();
 		
 		double timeToCollision = getTimeToCollision(entity1, entity2);
-		if (timeToCollision == Double.POSITIVE_INFINITY)
+		if (timeToCollision == Double.POSITIVE_INFINITY && !apparentlyCollide(entity1, entity2))
+			//Due to rounding issues, it is possible that two entities already apparently collide, but the time to their collision is
+			//calculated to be POSITIVE_INFINITY instead of zero.
 			return null;
 		
-		Entity entity1Clone = entity1.copy();
-		Entity entity2Clone = entity2.copy();
-		entity1Clone.move(timeToCollision);
-		entity2Clone.move(timeToCollision);
+		Position position1, position2;
 		
-		Position position1 = entity1Clone.getPosition();
-		Position position2 = entity2Clone.getPosition();
+		if (!apparentlyCollide(entity1, entity2)) {
+			position1 = entity1.getPosition().move(entity1.getVelocity(), timeToCollision);
+			position2 = entity2.getPosition().move(entity2.getVelocity(), timeToCollision);
+		}
+		else {
+			position1 = entity1.getPosition();
+			position2 = entity2.getPosition();
+		}
 		
-		double radius1 = entity1Clone.getRadius();
-		double radius2 = entity2Clone.getRadius();
+		double radius1 = entity1.getRadius();
+		double radius2 = entity2.getRadius();
 		double sumOfRadii = radius1 + radius2;
 		
 		return new Position( (position1.getxComponent() * radius2 + position2.getxComponent() * radius1) / sumOfRadii, 
