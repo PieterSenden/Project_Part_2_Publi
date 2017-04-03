@@ -483,8 +483,8 @@ public class World {
 		for (Set<Entity> collision: collisionSet) {
 			if (collision.size() == 1) {
 				Entity entity = (Entity)collision.toArray()[0];
-				entity.bounceOfBoundary();
 				showCollision(collisionListener, entity);
+				entity.bounceOfBoundary();
 			}
 			else if (collision.size() == 2) {
 				Entity entity1 = (Entity)collision.toArray()[0];
@@ -498,14 +498,17 @@ public class World {
 	}
 	
 	public void showCollision(CollisionListener collisionListener, Entity entity) {
-		collisionListener.boundaryCollision(entity, entity.getPosition().getxComponent(), entity.getPosition().getyComponent());
+		if (collisionListener != null)
+			collisionListener.boundaryCollision(entity, entity.getPosition().getxComponent(), entity.getPosition().getyComponent());
 	}
 	
 	public void showCollision(CollisionListener collisionListener, Entity entity1, Entity entity2) {
-		if (!((entity1 instanceof Bullet && entity2 instanceof Ship && ((Ship)entity2).hasFired((Bullet)entity1)) ||
-				(entity2 instanceof Bullet && entity1 instanceof Ship && ((Ship)entity1).hasFired((Bullet)entity2)))) {
-			Position collisionPosition = Entity.getCollisionPosition(entity1, entity2);
-			collisionListener.objectCollision(entity1, entity2, collisionPosition.getxComponent(), collisionPosition.getyComponent());
+		if (collisionListener != null) {
+			if (!((entity1 instanceof Bullet && entity2 instanceof Ship && ((Ship)entity2).hasFired((Bullet)entity1)) ||
+					(entity2 instanceof Bullet && entity1 instanceof Ship && ((Ship)entity1).hasFired((Bullet)entity2)))) {
+				Position collisionPosition = Entity.getCollisionPosition(entity1, entity2);
+				collisionListener.objectCollision(entity1, entity2, collisionPosition.getxComponent(), collisionPosition.getyComponent());
+			}
 		}
 	}
 	
