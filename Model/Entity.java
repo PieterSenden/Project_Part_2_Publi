@@ -89,23 +89,24 @@ public abstract class Entity {
 	 * @post   ...TODO
 	 *       | ...
 	 */
-	 public void terminate() {
-		 this.isTerminated = true;
-	 }
-	 
-	 /**
-	  * Return a boolean indicating whether or not this entity is terminated.
-	  */
-	 @Basic @Raw
-	 public boolean isTerminated() {
-		 return this.isTerminated;
-	 }
-	 
-	 /**
-	  * Variable registering whether this person is terminated.
-	  */
-	 private boolean isTerminated = false;
-	 
+	public void terminate() {
+		this.isTerminated = true;
+	}
+	
+	/**
+	 * Return a boolean indicating whether or not this entity is terminated.
+	 */
+	@Basic @Raw
+	public boolean isTerminated() {
+		return this.isTerminated;
+	}
+	
+	/**
+	 * Variable registering whether this person is terminated.
+	 */
+	private boolean isTerminated = false;
+	
+	public static final double ACCURACY_FACTOR = 0.99;
 	
 	/**
 	 * Return the position of this entity.
@@ -117,7 +118,7 @@ public abstract class Entity {
 		return this.position;
 	}
 	
-	public static final double ACCURACY_FACTOR = 0.99;
+
 	
 	/**
 	 * Check whether the given position is a valid position for this entity.
@@ -424,7 +425,7 @@ public abstract class Entity {
 	/**
 	 * Return the minimal density of this entity.
 	 */
-	@Raw
+	@Basic @Raw
 	public abstract double getMinimalDensity();
 	
 	

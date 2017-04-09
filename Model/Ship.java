@@ -107,17 +107,14 @@ public class Ship extends Entity {
 		if (!isTerminated()) {
 			Set<Bullet> magazineClone = new HashSet<>(getMagazine());
 			for (Bullet bullet: magazineClone) {
-				removeAsLoadedBullet(bullet);
-				bullet.setShip(null);
+				removeBullet(bullet);
 			}
 			Set<Bullet> firedBulletsClone = new HashSet<>(getFiredBullets());
 			for (Bullet bullet: firedBulletsClone) {
-				removeAsFiredBullet(bullet);
-				bullet.setShip(null);
+				removeBullet(bullet);
 			}
 			if (getWorld() != null) {
 				getWorld().removeEntity(this);
-				setWorld(null);
 			}
 			super.terminate();
 		}
@@ -344,8 +341,7 @@ public class Ship extends Entity {
 	 *         The thrusterForce to check.
 	 * @return 
 	 *       | result == (force >= 0)
-	*/
-	@Raw
+	 */
 	public static boolean isValidThrusterForce(double force) {
 		return force >= 0;
 	}
@@ -551,6 +547,22 @@ public class Ship extends Entity {
 	}
 	
 	/**
+	 * @param bullet
+	 * @throws IllegalArgumentException
+	 */
+	void removeBullet(Bullet bullet) throws IllegalArgumentException {
+		if (! hasAsBullet(bullet))
+			throw new IllegalArgumentException();
+		else {
+			if (hasLoadedInMagazine(bullet))
+				removeAsLoadedBullet(bullet);
+			else if (hasFired(bullet))
+				removeAsFiredBullet(bullet);
+			bullet.setShip(null);
+		}
+	}
+	
+	/**
 	 * Remove the given bullet from the collection of fired bullets of this ship.
 	 * @param bullet
 	 * 		The bullet to remove the collection of fired bullets of this ship.
@@ -649,7 +661,7 @@ public class Ship extends Entity {
 	/**
 	 * Return the magazine with the loaded bullets of this ship.
 	 */
-	@Model @Basic
+	@Basic
 	public Set<Bullet> getMagazine() {
 		return new HashSet<Bullet>(this.magazine);
 	}

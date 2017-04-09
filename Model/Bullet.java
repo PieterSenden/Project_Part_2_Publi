@@ -5,19 +5,22 @@ import be.kuleuven.cs.som.annotate.*;
 
 /**
  * A class representing a circular bullet dealing with
- * position, velocity, radius, density, and mass.
- * @invar  The minimal radius of each bullet must be a valid minimal radius for any bullet.
+ * position, velocity, radius, density, mass and number of bounces. A bullet can also be loaded on a ship and fired by that ship.
+ * @invar The minimal radius of each bullet must be a valid minimal radius for any bullet.
  *       | isValidMinimalRadius(getMinimalRadius())
- * @invar Each bullet must have a proper ship.
- * 		 | hasProperShip()
  * @invar Each bullet can have its nbOfBounces as nbOfBounces
  * 		 | canHaveAsNbOfBounces(getNbOfBounces)
- * @invar  Each bullet can have its maximal number of bounces as maximal number of bounces.
+ * @invar Each bullet can have its maximal number of bounces as maximal number of bounces.
  *       | canHaveAsMaximalNbOfBounces(this.getMaximalNbOfBounces())
+ * @invar Each bullet must have a proper ship.
+ * 		 | hasProperShip()
  * @note In this class, when we state 'this bullet is associated to a ship', we mean that
  * 			the bullet is either loaded in the magazine of the ship or has been fired by the ship.
  * 			In the former case, the bullet is not associated to a world. In the latter case,
- * 			it is associated to a world.
+ * 			it is associated to a world (implemented in the superclass Entity).
+ * 
+ * @author Joris Ceulemans & Pieter Senden
+ * @version 2.0
  */
 
 //TODO Add terminated checks.
@@ -40,26 +43,26 @@ public class Bullet extends Entity {
 	 * @return A copy of this bullet.
 	 */
 	@Override
-	public Bullet copy() {
+	public Bullet copy() throws TerminatedException {
+		if (isTerminated())
+			throw new TerminatedException();
 		return new Bullet(getPosition().getxComponent(), getPosition().getyComponent(), getVelocity().getxComponent(),
 				getVelocity().getyComponent(), getRadius(), getDensity(), getMass());
 	}
 	
-	/** TODO
+	/**
+	 * Terminate this bullet.
+	 * 
+	 * @post	| new.isTerminated == true
+	 * 
 	 */
 	@Override
 	public void terminate() {
 		if (!isTerminated()) {
-			if (getShip() != null) {
-				if (getShip().hasLoadedInMagazine(this))
-					getShip().removeAsLoadedBullet(this);
-				else if (getShip().hasFired(this))
-					getShip().removeAsFiredBullet(this);
-				setShip(null);
-			}
+			if (getShip() != null)
+				getShip().removeBullet(this);
 			if (getWorld() != null) {
 				getWorld().removeEntity(this);
-				setWorld(null);
 			}
 			super.terminate();
 		}
@@ -117,13 +120,13 @@ public class Bullet extends Entity {
 	/**
 	 * Check whether the given minimal radius is a valid minimal radius for any bullet.
 	 *  
-	 * @param  minimal radius
+	 * @param  minimalRadius
 	 *         The minimal radius to check.
-	 * @return true iff the given minimalRadius is greater than getMinimalRadius().
-	 *       | result == minimalRadius >= getMinimalRadius()
+	 * @return true iff the given minimal radius is positive and less than or equal to the current minimal radius.
+	 *       | result == (minimalRadius > 0) && (minimalRadius <= getMinimalRadius())
 	 */
 	public static boolean isValidMinimalRadius(double minimalRadius) {
-		return minimalRadius >= Bullet.getMinimalRadius();
+		return (minimalRadius > 0) && (minimalRadius <= Bullet.getMinimalRadius());
 	}
 	
 	/**

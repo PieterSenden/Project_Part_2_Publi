@@ -94,7 +94,6 @@ public class World {
 	 * @return 
 	 *       | result == (0 < height) && (height <= getMaxHeight())
 	*/
-	@Raw
 	public static boolean isValidHeight(double height) {
 		return (0 < height) && (height <= getMaxHeight());
 	}
@@ -108,7 +107,7 @@ public class World {
 	/**
 	 * Return the maximal height for any world.
 	 */
-	@Basic @Raw
+	@Basic
 	public static double getMaxHeight() {
 		return maxHeight;
 	}
@@ -135,7 +134,6 @@ public class World {
 	 * @return 
 	 *       | result == (0 < width) && (width <= getMaxWidth())
 	*/
-	@Raw
 	public static boolean isValidWidth(double width) {
 		return (0 < width) && (width <= getMaxWidth());
 	}
@@ -149,7 +147,7 @@ public class World {
 	/**
 	 * Return the maximal width for any world.
 	 */
-	@Basic @Raw
+	@Basic
 	public static double getMaxWidth() {
 		return maxWidth;
 	}
@@ -487,8 +485,9 @@ public class World {
 				entity.bounceOfBoundary();
 			}
 			else if (collision.size() == 2) {
-				Entity entity1 = (Entity)collision.toArray()[0];
-				Entity entity2 = (Entity)collision.toArray()[1];
+				Object[] collisionArray = collision.toArray();
+				Entity entity1 = (Entity)collisionArray[0];
+				Entity entity2 = (Entity)collisionArray[1];
 				showCollision(collisionListener, entity1, entity2);
 				Entity.resolveCollision(entity1, entity2);
 			}
