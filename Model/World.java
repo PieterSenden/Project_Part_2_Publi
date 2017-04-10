@@ -29,13 +29,14 @@ public class World {
 	 *         height. Otherwise, the height of this new world is equal to getMaxHeight().
 	 *       | if (isValidHeight(height))
 	 *       |   then new.getHeight() == height
-	 *       |   else new.getHeight() == getMaxHeight()
+	 *       | else new.getHeight() == getMaxHeight()
 	 * @post   If the given width is a valid width for any world, the width of this new world is equal to the given
 	 *         width. Otherwise, the width of this new world is equal to getMaxWidth().
 	 *       | if (isValidWidth(width))
 	 *       |   then new.getWidth() == width
-	 *       |   else new.getWidth() == getMaxWidth()
+	 *       | else new.getWidth() == getMaxWidth()
 	 */
+	@Raw
 	public World(double height, double width) {
 		if (! isValidHeight(height))
 			height = getMaxHeight();
@@ -45,37 +46,43 @@ public class World {
 		this.width = width;
 	}
 	
+	
+	/**
+	 * Return a boolean indicating whether or not this world is terminated.
+	 */
+	@Basic @Raw
+	public boolean isTerminated() {
+		return this.isTerminated;
+	}
+	
 	/**
 	 * Terminate this world.
-	 *
+	 * 
+	 * @effect Each entity is removed from this world.
+	 * 		 | for each entity in getEntities() : remove(entity)
 	 * @post   This world  is terminated.
 	 *       | new.isTerminated()
-	 * @post   ...TODO
-	 *       | ...
 	 */
-	 public void terminate() {
-		 if (!isTerminated()) {
-			 Set<Entity> entitiesClone = new HashSet<>(getEntities());
-			 for (Entity entity: entitiesClone) {
-				 removeEntity(entity);
-				 entity.setWorld(null);
-			 }
-			 this.isTerminated = true;
-		 }
-	 }
-	 
-	 /**
-	  * Return a boolean indicating whether or not this world is terminated.
-	  */
-	 @Basic @Raw
-	 public boolean isTerminated() {
-		 return this.isTerminated;
-	 }
-	 
-	 /**
-	  * Variable registering whether this person is terminated.
-	  */
-	 private boolean isTerminated = false;
+	public void terminate() {
+		if (!isTerminated()) {
+			//Before removing all ships and bullets, the association between ships and fired bullets must be broken.
+			for (Ship ship: getShips()) {
+				for (Bullet bullet: ship.getFiredBullets()) {
+					ship.removeBullet(bullet);
+				}
+			}
+			Set<Entity> entitiesClone = new HashSet<>(getEntities());
+			for (Entity entity: entitiesClone) {
+				removeEntity(entity);
+			}
+			this.isTerminated = true;
+		}
+	}
+	
+	/**
+	 * Variable registering whether this world is terminated.
+	 */
+	private boolean isTerminated = false;
 	 
 	
 	/**
@@ -87,13 +94,13 @@ public class World {
 	}
 	
 	/**
-	 * Check whether this world can have the given height as its height.
+	 * Check whether the given height is a valid height for any world.
 	 *  
 	 * @param  height
 	 *         The height to check.
 	 * @return 
 	 *       | result == (0 < height) && (height <= getMaxHeight())
-	*/
+	 */
 	public static boolean isValidHeight(double height) {
 		return (0 < height) && (height <= getMaxHeight());
 	}
@@ -127,7 +134,7 @@ public class World {
 	}
 	
 	/**
-	 * Check whether this world can have the given width as its width.
+	 * Check whether the given width is a valid width for any world.
 	 *  
 	 * @param  width
 	 *         The width to check.
@@ -153,12 +160,14 @@ public class World {
 	}
 	
 	/**
-	 * A variable registering the maximal height of any world.
+	 * A variable registering the maximal width of any world.
 	 */
 	private static final double maxWidth = Double.MAX_VALUE;
 	
-	/**TODO
-	 * @return
+	/**
+	 * Return an array with the dimensions (width and height) of this world.
+	 * 
+	 * @return @see implementation
 	 */
 	public double[] getDimensions() {
 		return new double[] {getWidth(), getHeight()};
@@ -166,6 +175,7 @@ public class World {
 	
 	/**
 	 * Check whether the given position lies within the boundaries of this world.
+	 * 
 	 * @param position
 	 * 			The position to check.
 	 * @return	| @see implementation
@@ -179,9 +189,13 @@ public class World {
 	
 	/**
 	 * Check whether the boundaries of this world fully surround the given entity.
+	 * 
 	 * @param entity
 	 * 			The entity to check.
-	 * @return	| @see implementation
+	 * @return	True iff the given entity is effective and not terminated and this world is not terminated and the distance from the centre
+	 * 			of the given entity to the boundary of this world is greater than or equal to the radius of the given entity multiplied
+	 * 			with the accuracy factor given in the class Entity.
+	 * 			| @see implementation
 	 */
 	public boolean boundariesSurround(Entity entity) {
 		if (entity == null || entity.isTerminated() || this.isTerminated())
@@ -195,9 +209,10 @@ public class World {
 	
 	/**
 	 * Check whether this world can contain the given entity.
+	 * 
 	 * @param entity
 	 * 			The entity to check.
-	 * @return	| result == (entity != null) && this.boundariesSurround(entity)
+	 * @return	| result == (entity != null) && !entity.isTerminated() && !this.isTerminated() && this.boundariesSurround(entity)
 	 */
 	public boolean canHaveAsEntity(Entity entity) {
 		return (entity != null) && !entity.isTerminated() && !this.isTerminated() && this.boundariesSurround(entity);
@@ -205,6 +220,7 @@ public class World {
 	
 	/**
 	 * Check whether this world has proper entities.
+	 * 
 	 * @return	| result == 
 	 * 			|	(for each entity in getEntities():
 	 * 			|		canHaveAsEntity(entity) && (entity.getWorld == this) && (getEntityAt(entity.getPosition()) == entity) &&
@@ -212,14 +228,15 @@ public class World {
 	 * 			|			(entity == other) || !Entity.overlap(entity, other)))
 	 * 			|	&& (getOccupiedPositions().size() == getEntities().size())
 	 */
+	@Raw
 	public boolean hasProperEntities() {
 		if (getOccupiedPositions().size() != getEntities().size())
 			//This means that at least one entity is the value of at least two different keys.
 			return false;
-		for(Entity entity: getEntities()) {
-			if(!canHaveAsEntity(entity) || (entity.getWorld() != this) || (getEntityAt(entity.getPosition()) != entity))
+		for (Entity entity: getEntities()) {
+			if (!canHaveAsEntity(entity) || (entity.getWorld() != this) || (getEntityAt(entity.getPosition()) != entity))
 				return false;
-			for(Entity other: getEntities()) {
+			for (Entity other: getEntities()) {
 				if ((other != entity) && Entity.overlap(entity, other))
 					return false;
 			}
@@ -229,15 +246,20 @@ public class World {
 	
 	/**
 	 * Return the entity, if any, whose centre coincides with the given position.
+	 * 
+	 * If no entity has the given position as its centre, null is returned.
+	 * If the given position is null, null is returned.
+	 * 
 	 * @param position
 	 * 			The position of which the method checks that there is an entity.
-	 * @return	| (result == null)  || 
-     *        	| ( (result.getPosition() == position) &&
-     *        	|   (result.getWorld() == this) )
-     * @return  | (result != null) ==
-     *        	|   (for some entity in Entity:
-     *        	|     (entity.getPosition() == position) && this.hasAsEntity(entity) )
+//	 * @return	| (result == null)  || 
+//     *        	| ( (result.getPosition() == position) &&
+//     *        	|   (result.getWorld() == this) )
+//     * @return  | (result != null) ==
+//     *        	|   (for some entity in Entity:
+//     *        	|     (entity.getPosition() == position) && this.hasAsEntity(entity) )
 	 */
+	@Basic
 	public Entity getEntityAt(Position position) {
 		if (position == null)
 			return null;
@@ -247,14 +269,16 @@ public class World {
 	/**
 	 * Return a set of all occupied positions in this world. Occupied positions are positions where the centre of an entity in this
 	 * world is located.
+	 * 
+	 * @return	| { position in Position | hasWithinBoundaries(position) && (getEntityAt(position) != null) }
 	 */
-	@Basic
 	public Set<Position> getOccupiedPositions() {
-		return entities.keySet();
+		return new HashSet<Position>(entities.keySet());
 	}
 	
 	/**
 	 * Check whether this world contains the given entity.
+	 * 
 	 * @param entity
 	 * 			The entity to check.
 	 * @return  | result ==
@@ -267,14 +291,16 @@ public class World {
 	
 	/**
 	 * Returns a set of all entities contained in this world.
+	 * 
+	 * @return | { position in getOccupiedPositions() | true : getEntityAt(position) }
 	 */
-	@Basic
 	public Set<Entity> getEntities() {
 		return new HashSet<Entity>(entities.values());
 	}
 	
 	/**
 	 * Returns a set of all ships contained in this world.
+	 * 
 	 * @return	| result == { e in getEntities() | (e instanceof Ship) : (Ship)e }
 	 */
 	public Set<Ship> getShips() {
@@ -288,6 +314,7 @@ public class World {
 	
 	/**
 	 * Returns a set of all bullets contained in this world.
+	 * 
 	 * @return	| result == { e in getEntities() | (e instanceof Bullet) : (Bullet)e }
 	 */
 	public Set<Bullet> getBullets() {
@@ -301,44 +328,47 @@ public class World {
 	
 	/**
 	 * Add a given entity to this world.
+	 * 
 	 * @param entity
 	 * 			The entity to add to this world.
-	 * @post	| new.hasAsEntity(entity)
-	 * @post	| (new entity).getWorld() == this
-	 * @throws NullPointerException
-	 * 			| entity == null
+	 * @post	| new.getEntityAt((new entity).getPosition) == (new entity)
+	 * @effect	| entity.setWorld(this)
 	 * @throws IllegalArgumentException
 	 * 			| !canHaveAsEntity(entity) || (entity.getWorld() != null) || hasAsEntity(entity)
 	 * @throws OverlapException(entity, other)
 	 * 			| for some other in getEntities:
 	 * 			|	(entity != other) && Entity.overlap(entity, other)
 	 */
-	public void addEntity(Entity entity) throws NullPointerException, IllegalArgumentException, OverlapException, IllegalStateException {
+	public void addEntity(Entity entity) throws IllegalArgumentException, OverlapException, IllegalStateException {
+		if (!canHaveAsEntity(entity) || (entity.getWorld() != null) || hasAsEntity(entity))
+			throw new IllegalArgumentException();
+		if (this.isTerminated())
+			throw new IllegalStateException();
 		if (entity != null) {
 			for(Entity other: getEntities()) {
 				if((other != entity) && Entity.overlap(entity, other))
 					throw new OverlapException(entity, other);
 			}
 		}
-		if (this.isTerminated())
-			throw new IllegalStateException();
-		if (!canHaveAsEntity(entity) || (entity.getWorld() != null) || hasAsEntity(entity))
-			throw new IllegalArgumentException();
 		entities.put(entity.getPosition(), entity);
 		entity.setWorld(this);
+		//Cannot throw TerminatedException because at this point canHaveAsEntity(entity) implies !entity.isTerminated()
 	}
 	
 	/**
 	 * Remove the given entity from this world.
 	 * @param entity
 	 * 			The entity to remove from this world.
+	 * @post	| new.getEntityAt((new entity).getPosition) == null
+	 * @effect	| entity.setWorld(null)
 	 * @throws NullPointerException
 	 * 			| entity == null
 	 * @throws IllegalArgumentException
 	 * 			| !hasAsEntity(entity)
 	 * @throws IllegalMethodCallException
-	 * 			| //TODO
-	 * @note Ships can only be removed if they have no more fired bullets in this world. Similarly, a fired bullet can only be removed
+	 * 			| !entity.canBeRemovedFromWorld()
+	 * @note	Ships and bullets can only be removed if they are not associated with another bullet or ship respectively. This means that
+	 * 			ships can only be removed if they have no more fired bullets in this world. Similarly, a fired bullet can only be removed
 	 * 			if its associated ship is null or it apparently collides with its associated ship. To remove a ship or a bullet that does
 	 * 			not satisfy these requirements, first end the association between them.
 	 */
@@ -347,24 +377,32 @@ public class World {
 			throw new NullPointerException();
 		if (!hasAsEntity(entity))
 			throw new IllegalArgumentException();
-		if ((entity instanceof Ship && ((Ship)entity).getNbOfFiredBullets() != 0) ||
-				(entity instanceof Bullet && ((Bullet)entity).getShip() != null) &&
-				!Entity.apparentlyCollide(entity, ((Bullet)entity).getShip()))
+		if (!entity.canBeRemovedFromWorld())
 			throw new IllegalMethodCallException();
 		entities.remove(entity.getPosition());
 		entity.setWorld(null);
 	}
 	
-	private void setEntities(Set<Entity> entities) {
-		Map<Position,Entity> newEntities = new HashMap<>();
-		for (Entity entity: entities) {
-			if (!canHaveAsEntity(entity))
-				throw new IllegalArgumentException();
-			newEntities.put(entity.getPosition(), entity);
+	/**
+	 * Update the map entities of this world such that each entity in this world can be accessed via its position (this may not be possible
+	 * if the position of an entity in this world has changed).
+	 * 
+	 * @post	| if (hasasEntity(entity))
+	 * 			|	then ((getEntityAt(entity.getPosition()) == entity) &&
+	 * 			|	(for each position in { p in Position | hasWithinboundaries(p) } : 
+	 * 			|		(position == entity.getPosition() || getEntityAt(position) != entity)))
+	 * @throws	IllegalMethodCallException
+	 * 			| !hasAsentity(entity)
+	 */
+	@Raw
+	public void updatePosition(Entity entity) throws IllegalMethodCallException {
+		if (!hasAsEntity(entity))
+			throw new IllegalMethodCallException();
+		for (Position pos: getOccupiedPositions()) {
+			if (getEntityAt(pos) == entity)
+				entities.remove(pos);
 		}
-		this.entities = newEntities;
-		if (!hasProperEntities())
-			throw new IllegalArgumentException();
+		entities.put(entity.getPosition(), entity);
 	}
 	
 	/**
@@ -376,12 +414,11 @@ public class World {
      *        | for each key in entities.keySet():
      *        |   (key != null) && hasWithinBoundaries(key)
      * @invar   Each value associated with a key in the map is an effective, non-terminated entity involving this
-     *          world and involving a position which is identical to the associating key.
+     *          world.
      *        | for each key in entities.keySet():
      *        |   (entities.get(key) != null) &&
      *        |   (! entities.get(key).isTerminated()) &&
-     *        |   (entities.get(key).getWorld() == this) &&
-     *        |   (entities.get(key).getPosition().equals(key))
+     *        |   (entities.get(key).getWorld() == this)
 	 */
 	private Map<Position, Entity> entities = new HashMap<>();
 	
@@ -439,21 +476,6 @@ public class World {
 		return result;
 	}
 	
-	private void advance(double duration) throws IllegalArgumentException, IllegalStateException {
-		if (isTerminated())
-			throw new IllegalStateException();
-		double timeToFirstCollision = getTimeToFirstCollision();
-		if (duration > timeToFirstCollision && timeToFirstCollision >= 1e-10)
-			//It is possible that due to rounding issues, timeToFirstCollision is smaller than 1e-10 and we still want to advance this world.
-			throw new IllegalArgumentException(Double.toString(getTimeToFirstCollision()));
-		for (Entity entity: getEntities()) {
-			entity.move(duration);
-			if (entity instanceof Ship)
-				((Ship)entity).thrust(duration);
-		}
-		setEntities(getEntities());
-	}
-	
 	public Set<Set<Entity>> getCollisions() {
 		Set<Set<Entity>> result = new HashSet<>();
 		for (Entity entity: getEntities()) {
@@ -472,28 +494,6 @@ public class World {
 			}
 		}
 		return result;
-	}
-	
-	private void resolveCollisions(CollisionListener collisionListener) throws TerminatedException, IllegalArgumentException {
-		if (isTerminated())
-			throw new TerminatedException();
-		Set<Set<Entity>> collisionSet = getCollisions();
-		for (Set<Entity> collision: collisionSet) {
-			if (collision.size() == 1) {
-				Entity entity = (Entity)collision.toArray()[0];
-				showCollision(collisionListener, entity);
-				entity.bounceOfBoundary();
-			}
-			else if (collision.size() == 2) {
-				Object[] collisionArray = collision.toArray();
-				Entity entity1 = (Entity)collisionArray[0];
-				Entity entity2 = (Entity)collisionArray[1];
-				showCollision(collisionListener, entity1, entity2);
-				Entity.resolveCollision(entity1, entity2);
-			}
-			else
-				throw new IllegalCollisionException();
-		}
 	}
 	
 	public void showCollision(CollisionListener collisionListener, Entity entity) {
@@ -526,5 +526,41 @@ public class World {
 		}
 		if (duration >= 0)
 			advance(duration);
+	}
+	
+	private void advance(double duration) throws IllegalArgumentException, IllegalStateException {
+		if (isTerminated())
+			throw new IllegalStateException();
+		double timeToFirstCollision = getTimeToFirstCollision();
+		if (duration > timeToFirstCollision && timeToFirstCollision >= 1e-10)
+			//It is possible that due to rounding issues, timeToFirstCollision is smaller than 1e-10 and we still want to advance this world.
+			throw new IllegalArgumentException(Double.toString(getTimeToFirstCollision()));
+		for (Entity entity: getEntities()) {
+			entity.move(duration);
+			if (entity instanceof Ship)
+				((Ship)entity).thrust(duration);
+		}
+	}
+	
+	private void resolveCollisions(CollisionListener collisionListener) throws TerminatedException, IllegalArgumentException {
+		if (isTerminated())
+			throw new TerminatedException();
+		Set<Set<Entity>> collisionSet = getCollisions();
+		for (Set<Entity> collision: collisionSet) {
+			if (collision.size() == 1) {
+				Entity entity = (Entity)collision.toArray()[0];
+				showCollision(collisionListener, entity);
+				entity.bounceOfBoundary();
+			}
+			else if (collision.size() == 2) {
+				Object[] collisionArray = collision.toArray();
+				Entity entity1 = (Entity)collisionArray[0];
+				Entity entity2 = (Entity)collisionArray[1];
+				showCollision(collisionListener, entity1, entity2);
+				Entity.resolveCollision(entity1, entity2);
+			}
+			else
+				throw new IllegalCollisionException();
+		}
 	}
 }

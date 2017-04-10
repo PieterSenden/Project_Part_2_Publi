@@ -4,8 +4,8 @@ import asteroids.model.exceptions.*;
 import be.kuleuven.cs.som.annotate.*;
 
 /**
- * A class representing a circular bullet dealing with
- * position, velocity, radius, density, mass and number of bounces. A bullet can also be loaded on a ship and fired by that ship.
+ * A class representing a circular bullet dealing with position, velocity, radius, density, mass and number
+ * of bounces. A bullet can also be loaded on a ship and fired by that ship.
  * @invar The minimal radius of each bullet must be a valid minimal radius for any bullet.
  *       | isValidMinimalRadius(getMinimalRadius())
  * @invar Each bullet can have its nbOfBounces as nbOfBounces
@@ -23,17 +23,50 @@ import be.kuleuven.cs.som.annotate.*;
  * @version 2.0
  */
 
-//TODO Add terminated checks.
-
 public class Bullet extends Entity {
+	/**
+	 * Initialize this new Bullet with given position, velocity, radius, density and mass.
+	 * 
+	 * @param xComPos
+	 * 			The xComponent of the position of this new bullet.
+	 * @param yComPos
+	 * 			The yComponent of the position of this new bullet.
+	 * @param xComVel
+	 * 			The xComponent of the velocity of this new bullet.
+	 * @param yComVel
+	 * 			The yComponent of the velocity of this new bullet.
+	 * @param radius
+	 * 			The radius of this new bullet.
+	 * @param density
+	 * 			The density of this new bullet.
+	 * @param mass
+	 * 			The mass of this new bullet.
+	 * @effect	| super(xComPos, yComPos, xComVel, yComVel, radius, density, mass)
+	 */
 	@Raw
 	public Bullet(double xComPos, double yComPos, double xComVel, double yComVel, double radius, double density,
 			double mass) throws IllegalComponentException, IllegalPositionException, IllegalRadiusException {
 		super(xComPos, yComPos, xComVel, yComVel, radius, density, mass);
 	}
 	
+	/**
+	 * Initialize this new Bullet with given position, velocity and radius.
+	 * 
+	 * @param xComPos
+	 * 			The xComponent of the position of this new bullet.
+	 * @param yComPos
+	 * 			The yComponent of the position of this new bullet.
+	 * @param xComVel
+	 * 			The xComponent of the velocity of this new bullet.
+	 * @param yComVel
+	 * 			The yComponent of the velocity of this new bullet.
+	 * @param radius
+	 * 			The radius of this new bullet.
+	 * @effect	| this(xComPos, yComPos, xComVel, yComVel, radius, 7.8e12, 10e20)
+	 */
 	@Raw
-	public Bullet(double xComPos, double yComPos, double xComVel, double yComVel, double radius) {
+	public Bullet(double xComPos, double yComPos, double xComVel, double yComVel, double radius) throws IllegalComponentException, 
+																				IllegalPositionException, IllegalRadiusException{
 		this(xComPos, yComPos, xComVel, yComVel, radius, 7.8e12, 10e20);
 		//The value of the mass appears to be set to 10e=20. However, this value is changed to the only possible mass for a bullet
 		//with a given radius in the constructor of Entity.
@@ -54,6 +87,7 @@ public class Bullet extends Entity {
 		return new Bullet(getPosition().getxComponent(), getPosition().getyComponent(), getVelocity().getxComponent(),
 				getVelocity().getyComponent(), getRadius(), getDensity(), getMass());
 	}
+	
 	
 	/**
 	 * Terminate this bullet.
@@ -76,6 +110,7 @@ public class Bullet extends Entity {
 		}
 	}
 	
+	
 	/**
 	 * Check whether this bullet can have the given mass as its mass.
 	 * 
@@ -83,7 +118,7 @@ public class Bullet extends Entity {
 	 * 			| @see implementation
 	 * TODO Probably this method will not be needed anymore because only the density will be a basic variable in an entity.
 	 */
-	@Override
+	@Override @Raw
 	public boolean canHaveAsMass(double mass) {
 		return mass == getVolume() * getDensity();
 	}
@@ -94,7 +129,7 @@ public class Bullet extends Entity {
 	 * @return True iff the given density is equal to the minimal density
 	 * 			| @see implementation
 	 */
-	@Override
+	@Override @Raw
 	public boolean canHaveAsDensity(double density) {
 		return density == getMinimalDensity();
 	}
@@ -102,7 +137,7 @@ public class Bullet extends Entity {
 	/**
 	 * Return the minimal density of this bullet.
 	 */
-	@Override @Basic @Immutable
+	@Override @Basic @Immutable @Raw
 	public double getMinimalDensity() {
 		return minimalDensity;
 	}
@@ -113,6 +148,7 @@ public class Bullet extends Entity {
 	 */
 	private final double minimalDensity = 7.8e12;
 	
+	
 	/**
 	 * Check whether this bullet can have the given radius as its radius.
 	 * 
@@ -120,7 +156,7 @@ public class Bullet extends Entity {
 	 * 			The radius to check.
 	 * @return @see implementation.
 	 */
-	@Override
+	@Override @Raw
 	public boolean canHaveAsRadius(double radius) {
 		return radius >= getMinimalRadius();
 	}
@@ -128,7 +164,7 @@ public class Bullet extends Entity {
 	/**
 	 * Return the minimal radius of any bullet.
 	 */
-	@Basic
+	@Basic @Raw
 	public static double getMinimalRadius() {
 		return minimalRadius;
 	}
@@ -297,6 +333,21 @@ public class Bullet extends Entity {
 			else if (collidesWithVerticalBoundary())
 				setVelocity(-getVelocity().getxComponent(), getVelocity().getyComponent());
 		}
+	}
+	
+	
+	/**
+	 * Determine whether this bullet can be removed from its world.
+	 * 
+	 * @return	| result == (getWorld() != null) && ((getShip() == null) || Entity.apparentlyCollide(this, getShip()))
+	 */
+	@Override
+	public boolean canBeRemovedFromWorld() {
+		if (getWorld() == null)
+			return false;
+		if ((getShip() != null) && !Entity.apparentlyCollide(this, getShip()))
+			return false;
+		return true;
 	}
 	
 	

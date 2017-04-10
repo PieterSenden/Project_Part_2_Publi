@@ -471,10 +471,28 @@ public class Ship extends Entity {
 		ship2.setVelocity(ship2.getVelocity().getxComponent() + Jx / m2, ship2.getVelocity().getyComponent() + Jy / m2);
 	}
 	
+	
+	/**
+	 * Determine whether this ship can be removed from its world.
+	 * 
+	 * @return	True iff this ship is associated with a world and does not have fired bullets in this world anymore (all associations between
+	 * 			this ship and its fired bullets must have been torn down).
+	 * 			| result == (getWorld() != null) && (getNbOfFiredBullets() == 0)
+	 */
+	@Override
+	public boolean canBeRemovedFromWorld() {
+		if (getWorld() == null)
+			return false;
+		if (getNbOfFiredBullets() != 0)
+			return false;
+		return true;
+	}
+	
+	
 	/**
 	 * Check whether this ship has loaded this bullet in its magazine.
 	 */
-	@Basic
+	@Basic @Raw
 	public boolean hasLoadedInMagazine(@Raw Bullet bullet) {
 		return magazine.contains(bullet);
 	}
@@ -523,7 +541,7 @@ public class Ship extends Entity {
 	/**
 	 * Check whether this ship has fired the given bullet. 
 	 */
-	@Basic
+	@Basic @Raw
 	public boolean hasFired(@Raw Bullet bullet) {
 		return firedBullets.contains(bullet);
 	}
@@ -627,18 +645,18 @@ public class Ship extends Entity {
 	 * 			is associated to the same world as this ship and references this ship as its ship.
 	 * 			| result == 
 	 * 			| 	(for each bullet in getMagazine():
-	 * 			|		bullet != null && bullet.getShip() == this && ! hasFired(bullet) && bullet.getWorld() == null)
+	 * 			|		!canHaveAsBullet(bullet) && bullet.getShip() == this && ! hasFired(bullet) && bullet.getWorld() == null)
 	 * 			|	&&
 	 * 			|	(for each bullet in getFiredBullets:
-	 * 			|		bullet != null && bullet.getShip() == this && ! hasLoadedInMagazine(bullet) && bullet.getWorld() == getWorld()) 			
+	 * 			|		!canHaveAsBullet(bullet) && bullet.getShip() == this && ! hasLoadedInMagazine(bullet) && bullet.getWorld() == getWorld()) 			
 	 */
 	public boolean hasProperBullets() {
 		for (Bullet bullet : magazine) {
-			if (bullet == null || bullet.getShip() != this || hasFired(bullet) || bullet.getWorld() != null)
+			if (!canHaveAsBullet(bullet) || bullet.getShip() != this || hasFired(bullet) || bullet.getWorld() != null)
 				return false;
 		}
 		for (Bullet bullet : firedBullets) {
-			if (bullet == null || bullet.getShip() != this || hasLoadedInMagazine(bullet) || bullet.getWorld() != getWorld())
+			if (!canHaveAsBullet(bullet) || bullet.getShip() != this || hasLoadedInMagazine(bullet) || bullet.getWorld() != getWorld())
 				return false;
 		}
 		return true;
@@ -673,9 +691,9 @@ public class Ship extends Entity {
 	/**
 	 * Return the set of all fired, non-terminated bullets by this ship.
 	 */
-	@Model @Basic
-	private Set<Bullet> getFiredBullets() {
-		return this.firedBullets;
+	@Basic
+	public Set<Bullet> getFiredBullets() {
+		return new HashSet<Bullet>(this.firedBullets);
 	}
 	
 	/**

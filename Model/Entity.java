@@ -165,30 +165,26 @@ public abstract class Entity {
 	 * @effect The new position of this entity is set to the position that is the result of the position of this entity moved with
 	 * 			the velocity of this entity and during the given duration.
 	 * 			| @see implementation
+	 * @effect If this entity is contained in a world, the position of this entity in its world is updated.
+	 * 			| if (getWorld() != null)
+	 * 			|	then getWorld().updatePosition(this)
 	 * @throws IllegalArgumentException
 	 * 			The given duration is strictly less than 0.
 	 * 			| duration < 0
+	 * @throws IllegalMethodCallException
+	 * 			This entity is contained in a world and the movement of this entity causes its world not to have proper entities.
+	 * 			| !new.getWorld().hasProperEntities()
 	 */
 	public void move(double duration) throws IllegalArgumentException, IllegalComponentException, IllegalStateException, 
-																							IllegalPositionException {
+																				IllegalMethodCallException, IllegalPositionException {
 		if (isTerminated())
 			throw new IllegalStateException();
-//		try {
 		setPosition(getPosition().move(getVelocity(), duration));
-//		}
-//		catch (IllegalPositionException exc) {
-//			Position newCollidingPosition = getPosition().move(getVelocity(), duration);
-//			Position newPosition = null;
-//			if (this.getPosition().getxComponent() <= this.getRadius() * Entity.ACCURACY_FACTOR)
-//				newPosition = new Position(newCollidingPosition.getxComponent() + (1-ACCURACY_FACTOR)/2 * getRadius(), newCollidingPosition.getyComponent());
-//			else if (this.getPosition().getyComponent() <= this.getRadius() * Entity.ACCURACY_FACTOR)
-//				newPosition = new Position(newCollidingPosition.getxComponent(), newCollidingPosition.getyComponent() + (1-ACCURACY_FACTOR)/2 * getRadius());
-//			else if (getWorld().getHeight() - this.getPosition().getyComponent() <= this.getRadius() * Entity.ACCURACY_FACTOR)
-//				newPosition = new Position(newCollidingPosition.getxComponent(), newCollidingPosition.getyComponent() - (1-ACCURACY_FACTOR)/2 * getRadius());
-//			else if (getWorld().getWidth() - this.getPosition().getyComponent() >= this.getRadius() * Entity.ACCURACY_FACTOR)
-//				newPosition = new Position(newCollidingPosition.getxComponent() - (1-ACCURACY_FACTOR)/2 * getRadius(), newCollidingPosition.getyComponent());
-//			setPosition(newPosition);
-//		}
+		if (getWorld() != null){
+			getWorld().updatePosition(this);
+//			if (!getWorld().hasProperEntities())
+//				throw new IllegalMethodCallException();
+		}
 	}
 	
 	
@@ -385,6 +381,7 @@ public abstract class Entity {
 	 * 		| if (canHaveAsMass(mass))
 	 * 		|	then new.getMass() == mass
 	 */
+	@Raw
 	private void setMass(double mass) {
 		if (canHaveAsMass(mass) && !isTerminated())
 			this.mass = mass;
@@ -464,6 +461,7 @@ public abstract class Entity {
 	 * 			| if (radius <= 0)
 	 * 			|	then result == false
 	 */
+	@Raw
 	public abstract boolean canHaveAsRadius(double radius);
 
 	
@@ -912,6 +910,14 @@ public abstract class Entity {
 	}
 	
 	/**
+	 * Determine whether this entity can be removed from its world.
+	 * @return false if this entity is not contained in a world.
+	 * 			| if (getWorld() == null)
+	 * 			|	then result == false.
+	 */
+	public abstract boolean canBeRemovedFromWorld();
+	
+	/**
 	 * Set the world of this entity to the given world.
 	 * @param world
 	 * 			The new world for this entity.
@@ -924,9 +930,9 @@ public abstract class Entity {
 	 * 			|	(world == null && getWorld() != null && getWorld().hasAsEntity(this))
 	 * 
 	 */
-	void setWorld(World world) throws IllegalMethodCallException, IllegalStateException {
+	void setWorld(World world) throws IllegalMethodCallException, TerminatedException {
 		if (isTerminated())
-			throw new IllegalStateException();
+			throw new TerminatedException();
 		if (world != null && (!world.hasAsEntity(this) || world.isTerminated()))
 			throw new IllegalMethodCallException();
 		if (world == null && getWorld() != null && getWorld().hasAsEntity(this))
