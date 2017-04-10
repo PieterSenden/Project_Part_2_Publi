@@ -171,9 +171,9 @@ public abstract class Entity {
 	 * @throws IllegalArgumentException
 	 * 			The given duration is strictly less than 0.
 	 * 			| duration < 0
-	 * @throws IllegalMethodCallException
-	 * 			This entity is contained in a world and the movement of this entity causes its world not to have proper entities.
-	 * 			| !new.getWorld().hasProperEntities()
+//	 * @throws IllegalMethodCallException
+//	 * 			This entity is contained in a world and the movement of this entity causes its world not to have proper entities.
+//	 * 			| !new.getWorld().hasProperEntities()
 	 */
 	public void move(double duration) throws IllegalArgumentException, IllegalComponentException, IllegalStateException, 
 																				IllegalMethodCallException, IllegalPositionException {
@@ -604,7 +604,7 @@ public abstract class Entity {
 	 * @param entity2
 	 * 			The second entity
 	 * @param duration
-	 * 			The duration during which the ships must be moved.
+	 * 			The duration during which the entities must be moved.
 	 * @return false if one of the entities is not effective, is not associated to a world or if they are not associated to the same world.
 	 * 			| if (entity1 == null || entity2 == null || entity1.getWorld() == null || entity2.getWorld() == null ||
 	 * 			|																					 entity1.getWorld() != entity2.getWorld())
@@ -619,15 +619,45 @@ public abstract class Entity {
 	 * 			|											 entity2.getPosition().move(entity2.getVelocity(), duration)))
 	 */
 	public static boolean collideAfterMove(Entity entity1, Entity entity2, double duration) throws IllegalStateException {
-		if (entity1.isTerminated() || entity2.isTerminated())
-			throw new IllegalStateException();
 		if (entity1 == null || entity2 == null || entity1.getWorld() == null || entity2.getWorld() == null ||
 																							entity1.getWorld() != entity2.getWorld())
 			return false;
+		if (entity1.isTerminated() || entity2.isTerminated())
+			throw new IllegalStateException();
 		Position position1 = entity1.getPosition().move(entity1.getVelocity(), duration);
 		Position position2 = entity2.getPosition().move(entity2.getVelocity(), duration);
 		double distanceBetweenCentres = Position.getDistanceBetween(position1, position2);
 		return getSumOfRadii(entity1, entity2) == distanceBetweenCentres;
+	}
+	
+	/**
+	 * Check whether this entity will collide if it is moved during a certain duration.
+	 * 
+	 * @param duration
+	 * 			The duration during which this entity must be moved.
+	 * @return false if this entity is not contained in a world.
+	 * 			| if (getWorld() == null)
+	 * 			|	then result == false
+	 * @return true if this entity is contained in a world and if it will collide with the boundary of its world when it is moved during the
+	 * 			given duration.
+	 * 			| if (getWorld() != null)
+	 * 			| then result == ( (getPosition().move(getVelocity(), duration).getyComponent() <= getRadius()) ||
+	 * 								(getWorld().getHeight() - getPosition().move(getVelocity(), duration).getyComponent() <= getRadius()) ||
+	 * 								(getPosition().move(getVelocity(), duration).getxComponent() <= getRadius()) ||
+	 * 								(getWorld().getWidth() - getPosition().move(getVelocity(), duration).getxComponent() <= getRadius()) )
+	 * @throws TerminatedException
+	 * 			This entity is terminated.
+	 * 			| isTerminated()
+	 */
+	public boolean collidesWithBoundaryAfterMove(double duration) throws TerminatedException {
+		if (isTerminated())
+			throw new TerminatedException();
+		if (getWorld() == null)
+			return false;
+		Position positionAfterMove = getPosition().move(getVelocity(), duration);
+		return (positionAfterMove.getyComponent() <= getRadius()) || (getWorld().getHeight() - positionAfterMove.getyComponent() <=
+				getRadius()) || (positionAfterMove.getxComponent() <= getRadius()) || (getWorld().getWidth() -
+				positionAfterMove.getxComponent() <= getRadius());
 	}
 	
 	/**
@@ -831,35 +861,7 @@ public abstract class Entity {
 	 * @param entity2
 	 * @throws IllegalMethodCallException
 	 */
-	public static void resolveCollision(Entity entity1, Entity entity2) throws IllegalMethodCallException, IllegalStateException {
-		if (entity1.isTerminated() || entity2.isTerminated())
-			throw new IllegalStateException();
-		if (entity1.getWorld() == null || entity1.getWorld() != entity2.getWorld() || !Entity.apparentlyCollide(entity1, entity2))
-			throw new IllegalMethodCallException();
-		if (entity1 instanceof Ship && entity2 instanceof Ship) {
-			Ship.resolveCollisionBetweenShips((Ship)entity1, (Ship)entity2);
-		}
-		else if (entity1 instanceof Bullet && entity2 instanceof Bullet) {
-			entity1.terminate();
-			entity2.terminate();
-		}
-		else if (entity1 instanceof Ship && entity2 instanceof Bullet) {
-			if (((Ship)entity1).hasFired((Bullet)entity2))
-				((Ship)entity1).loadBullet((Bullet)entity2);
-			else {
-				entity1.terminate();
-				entity2.terminate();
-			}
-		}
-		else if (entity1 instanceof Bullet && entity2 instanceof Ship) {
-			if (((Ship)entity2).hasFired((Bullet)entity1))
-				((Ship)entity2).loadBullet((Bullet)entity1);
-			else {
-				entity1.terminate();
-				entity2.terminate();
-			}
-		}
-	}
+	public abstract void resolveCollision(Entity other) throws IllegalMethodCallException, TerminatedException;
 	
 	/**TODO
 	 * @throws IllegalMethodCallException
@@ -877,6 +879,15 @@ public abstract class Entity {
 			return false;
 		return (world == null) || world.canHaveAsEntity(this);
 	}
+	
+	/**
+	 * Check whether if a collision between this entity and the given other entity occurs, it must be shown.
+	 * This method does not check if this entity and the other entity collide, only whether the collision must be shown if they do.
+	 * 
+	 * @param other
+	 * 			The other entity.
+	 */
+	public abstract boolean mustShowCollisionWith(Entity other);
 	
 	/**
 	 * Check whether this entity has a proper world.

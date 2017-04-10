@@ -319,7 +319,7 @@ public class Bullet extends Entity {
 	 * 			| getWorld() == null || !collidesWithBoundary()
 	 */
 	@Override
-	public void bounceOfBoundary() throws TerminatedException, IllegalMethodCallException, IllegalArgumentException {
+	public void bounceOfBoundary() throws TerminatedException, IllegalMethodCallException {
 		if (isTerminated())
 			throw new TerminatedException();
 		if (getWorld() == null || !collidesWithBoundary())
@@ -333,6 +333,43 @@ public class Bullet extends Entity {
 			else if (collidesWithVerticalBoundary())
 				setVelocity(-getVelocity().getxComponent(), getVelocity().getyComponent());
 		}
+	}
+	
+	/**
+	 * TODO
+	 */
+	@Override
+	public void resolveCollision(Entity other) throws IllegalMethodCallException, TerminatedException {
+		if (isTerminated() || other.isTerminated())
+			throw new IllegalStateException();
+		if (getWorld() == null || getWorld() != other.getWorld() || !Entity.apparentlyCollide(this, other))
+			throw new IllegalMethodCallException();
+		if (other instanceof Ship)
+			if (((Ship)other).hasFired(this))
+				((Ship)other).loadBullet(this);
+			else {
+				terminate();
+				other.terminate();
+			}
+		else if (other instanceof Bullet) {
+			terminate();
+			other.terminate();
+		}
+	}
+	
+	/**
+	 * Check whether if a collision between this entity and the given other entity occurs, it must be shown.
+	 * This method does not check if this entity and the other entity collide, only whether the collision must be shown if they do.
+	 * 
+	 * @param other
+	 * 			The other entity.
+	 * @return	| !(other instanceof Ship) || !((Ship)other).hasFired(this)
+	 */
+	@Override
+	public boolean mustShowCollisionWith(Entity other) {
+		if (other instanceof Ship)
+			return !((Ship)other).hasFired(this);
+		return true;
 	}
 	
 	

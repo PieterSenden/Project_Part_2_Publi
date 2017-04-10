@@ -446,6 +446,27 @@ public class Ship extends Entity {
 	
 	/**
 	 * TODO
+	 */
+	@Override
+	public void resolveCollision(Entity other) throws IllegalMethodCallException, TerminatedException {
+		if (isTerminated() || other.isTerminated())
+			throw new IllegalStateException();
+		if (getWorld() == null || getWorld() != other.getWorld() || !Entity.apparentlyCollide(this, other))
+			throw new IllegalMethodCallException();
+		if (other instanceof Ship)
+			Ship.resolveCollisionBetweenShips(this, (Ship)other);
+		else if (other instanceof Bullet) {
+			if (hasFired((Bullet)other))
+				loadBullet((Bullet)other);
+			else {
+				terminate();
+				other.terminate();
+			}
+		}
+	}
+	
+	/**
+	 * TODO
 	 * @param ship1
 	 * @param ship2
 	 * @throws IllegalMethodCallException
@@ -471,6 +492,20 @@ public class Ship extends Entity {
 		ship2.setVelocity(ship2.getVelocity().getxComponent() + Jx / m2, ship2.getVelocity().getyComponent() + Jy / m2);
 	}
 	
+	/**
+	 * Check whether if a collision between this entity and the given other entity occurs, it must be shown.
+	 * This method does not check if this entity and the other entity collide, only whether the collision must be shown if they do.
+	 * 
+	 * @param other
+	 * 			The other entity.
+	 * @return	| !(other instanceof Bullet) || !hasFired((Bullet)other)
+	 */
+	@Override
+	public boolean mustShowCollisionWith(Entity other) {
+		if (other instanceof Bullet)
+			return !hasFired((Bullet)other);
+		return true;
+	}
 	
 	/**
 	 * Determine whether this ship can be removed from its world.
