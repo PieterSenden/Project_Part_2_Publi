@@ -474,9 +474,9 @@ public class World {
 		return result;
 	}
 	
-	private void resolveCollisions(CollisionListener collisionListener) throws IllegalStateException {
+	private void resolveCollisions(CollisionListener collisionListener) throws TerminatedException, IllegalArgumentException {
 		if (isTerminated())
-			throw new IllegalStateException();
+			throw new TerminatedException();
 		Set<Set<Entity>> collisionSet = getCollisions();
 		for (Set<Entity> collision: collisionSet) {
 			if (collision.size() == 1) {

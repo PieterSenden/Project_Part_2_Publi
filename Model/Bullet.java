@@ -40,7 +40,12 @@ public class Bullet extends Entity {
 	}
 	
 	/**
+	 * Return a copy of this bullet.
+	 * 
 	 * @return A copy of this bullet.
+	 * 			| @see implementation
+	 * @throws TerminatedException
+	 * 			| this.isTerminated()
 	 */
 	@Override
 	public Bullet copy() throws TerminatedException {
@@ -53,8 +58,11 @@ public class Bullet extends Entity {
 	/**
 	 * Terminate this bullet.
 	 * 
-	 * @post	| new.isTerminated == true
-	 * 
+	 * @effect	| super.terminate()
+	 * @effect	| if (getShip != null)
+	 * 			|	then getShip.removeBullet(this)
+	 * TODO Probably breaking up the association between a world and an entity will be worked out in the method terminate() of the class
+	 * 		Entity. In that case the implementation of terminate() in Bullet needs to be adapted and no additional effect clause is needed.
 	 */
 	@Override
 	public void terminate() {
@@ -73,6 +81,7 @@ public class Bullet extends Entity {
 	 * 
 	 * @return true iff the given mass equals the volume of this bullet times its density.
 	 * 			| @see implementation
+	 * TODO Probably this method will not be needed anymore because only the density will be a basic variable in an entity.
 	 */
 	@Override
 	public boolean canHaveAsMass(double mass) {
@@ -81,6 +90,7 @@ public class Bullet extends Entity {
 	
 	/** 
 	 * Check whether this bullet can have the given density as its density
+	 * 
 	 * @return True iff the given density is equal to the minimal density
 	 * 			| @see implementation
 	 */
@@ -92,14 +102,20 @@ public class Bullet extends Entity {
 	/**
 	 * Return the minimal density of this bullet.
 	 */
-	@Override
+	@Override @Basic @Immutable
 	public double getMinimalDensity() {
 		return minimalDensity;
 	}
 	
+	/**
+	 * A variable registering the minimal density for any bullet. Note that a bullet's density cannot change and will always be equal
+	 * 	to the minimal density.
+	 */
 	private final double minimalDensity = 7.8e12;
 	
 	/**
+	 * Check whether this bullet can have the given radius as its radius.
+	 * 
 	 * @param radius
 	 * 			The radius to check.
 	 * @return @see implementation.
@@ -124,6 +140,9 @@ public class Bullet extends Entity {
 	 *         The minimal radius to check.
 	 * @return true iff the given minimal radius is positive and less than or equal to the current minimal radius.
 	 *       | result == (minimalRadius > 0) && (minimalRadius <= getMinimalRadius())
+	 * @note   The reason why only values less than or equal to the current minimal radius are valid, is that according to the class invariant
+	 * 			regarding the radius (in Entity), each bullet's radius must be greater than or equal to the minimal radius. This invariant
+	 * 			could be broken if we allowed the minimal radius to increase.
 	 */
 	public static boolean isValidMinimalRadius(double minimalRadius) {
 		return (minimalRadius > 0) && (minimalRadius <= Bullet.getMinimalRadius());
@@ -147,50 +166,81 @@ public class Bullet extends Entity {
 	}
 	
 	/**
-	 * Variable registering the minimal radius of this bullet.
+	 * Variable registering the minimal radius for any bullet.
 	 */
 	private static double minimalRadius = 1;
 	
 	
 	/**
-	 * TODO
-	 * @return
+	 * Return the number of bounces of this bullet against a boundary of its world.
+	 * 
+	 * If a bullet is not associated to a world, this value will be equal to zero. Also, if a bullet is loaded on a ship, this value is
+	 * reset to zero.
 	 */
 	@Basic @Raw
 	public int getNbOfBounces() {
 		return nbOfBounces;
 	}
 	
+	/**
+	 * Check whether this bullet can have its number of bounces as number of bounces.
+	 * 
+	 * @param number
+	 * 			The number to check.
+	 * @return @see implementation.
+	 */
+	@Raw
 	public boolean canHaveAsNbOfBounces(int number) {
 		return (0 <= number) && (number <= getMaximalNbOfBounces());
 	}
 	
-	private void setNbOfBounces(int number) throws IllegalStateException, IllegalArgumentException {
+	/**
+	 * Set the number of bounces of this bullet to the given number.
+	 * 
+	 * @param number
+	 * 			The new number of bounces for this bullet.
+	 * @post	| new.getNbOfBounces() == number
+	 * @throws TerminatedException
+	 * 			| this.isTerminated()
+	 * @throws IllegalArgumentException
+	 * 			| ! canHaveAsNbOfBounces(number)
+	 */
+	private void setNbOfBounces(int number) throws TerminatedException, IllegalArgumentException {
 		if (isTerminated())
-			throw new IllegalStateException();
+			throw new TerminatedException();
 		if (!canHaveAsNbOfBounces(number))
 			throw new IllegalArgumentException();
 		nbOfBounces = number;
 	}
 	
-	private void stepNbOfBounces() throws IllegalMethodCallException {
-		try {
-			setNbOfBounces(getNbOfBounces() + 1);
-		}
-		catch (IllegalArgumentException exc) {
-			throw new IllegalMethodCallException();
-		}
+	/**
+	 * Increment the number of bounces of this bullet with one.
+	 * 
+	 * @effect	| setNbOfBouces(getNbOfBounces() + 1)
+	 */
+	private void stepNbOfBounces() throws TerminatedException, IllegalArgumentException {
+		setNbOfBounces(getNbOfBounces() + 1);
 	}
 	
-	private void resetNbOfBounces() {
+	/**
+	 * Reset the number of bounces of this bullet.
+	 * 
+	 * @effect	| setNbOfBounces(0)
+	 */
+	private void resetNbOfBounces() throws TerminatedException {
 		setNbOfBounces(0);
 	}
 	
-	private int nbOfBounces;
+	/**
+	 * Variable registering the number of times this bullet has collided with the boundary of its world.
+	 */
+	private int nbOfBounces = 0;
 	
 	
 	/**
 	 * Return the maximal number of bounces of this bullet.
+	 * 
+	 * If this bullet has reached its maximal number of bounces and collides with the boundary of its world, this bullet is destroyed.
 	 */
 	@Basic @Raw @Immutable
 	public int getMaximalNbOfBounces() {
@@ -203,7 +253,7 @@ public class Bullet extends Entity {
 	 * @param  maximalNbOfBounces
 	 *         The maximal number of bounces to check.
 	 * @return 
-	 *       | result == 0 <= maximalNbOfBounces
+	 *       | result == (0 <= maximalNbOfBounces)
 	*/
 	@Raw
 	public boolean canHaveAsMaximalNbOfBounces(int maximalNbOfBounces) {
@@ -216,10 +266,26 @@ public class Bullet extends Entity {
 	private final int maximalNbOfBounces = 2;
 	
 	
-	/** TODO
+	/**
+	 * Make this bullet bounce of the boundary of its world.
+	 * 
+	 * @effect	| if (getNbOfBouces() >= getMaximalNbOfBounces())
+	 * 			|	then terminate()
+	 * @effect	| if (getNbOfBouces() < getMaximalNbOfBounces())
+	 * 			|	then stepNbOfBounces
+	 * @effect	| if (getNbOfBouces() < getMaximalNbOfBounces() && collidesWithHorizontalBoundary())
+	 * 			|	then setVelocity(getVelocity().getxComponent(), -getVelocity().getyComponent())
+	 * @effect	| if (getNbOfBouces() < getMaximalNbOfBounces() && collidesWithVerticalBoundary())
+	 * 			|	then setVelocity(-getVelocity().getxComponent(), getVelocity().getyComponent())
+	 * @throws	TerminatedException
+	 * 			| isTerminated()
+	 * @throws	IllegalMethodCallException
+	 * 			| getWorld() == null || !collidesWithBoundary()
 	 */
 	@Override
-	public void bounceOfBoundary() throws IllegalMethodCallException {
+	public void bounceOfBoundary() throws TerminatedException, IllegalMethodCallException, IllegalArgumentException {
+		if (isTerminated())
+			throw new TerminatedException();
 		if (getWorld() == null || !collidesWithBoundary())
 			throw new IllegalMethodCallException();
 		if (getNbOfBounces() >= getMaximalNbOfBounces())
@@ -233,6 +299,7 @@ public class Bullet extends Entity {
 		}
 	}
 	
+	
 	/**
 	 * Return the ship associated to this bullet, i.e. the ship that holds this bullet or fired it.
 	 */
@@ -241,13 +308,14 @@ public class Bullet extends Entity {
 		return this.ship;
 	}
 	
-	
 	/**
 	 * Check whether this bullet can be associated to the given ship.
+	 * 
 	 * @param ship
 	 * 		The ship to check.
 	 * @return 
-	 * 			| result == ((ship == null) || ship.canHaveAsBullet(this)) 
+	 * 			| result == ((ship == null) || ship.canHaveAsBullet(this))
+	 * TODO Check that ship is not terminated (in ship.canHaveAsBullet(this)) 
 	 */
 	@Raw
 	public boolean canHaveAsShip(Ship ship) {
@@ -256,6 +324,7 @@ public class Bullet extends Entity {
 	
 	/**
 	 * Check whether this bullet has a proper ship.
+	 * 
 	 * @return 
 	 * 			| if (canHaveAsShip(getShip())
 	 * 			|	if (getShip() == null)
@@ -266,6 +335,7 @@ public class Bullet extends Entity {
 	 * 			|		then result == getShip().hasFired(this)
 	 * 			| else
 	 * 			|	then result == false
+	 * 
 	 */
 	@Raw
 	public boolean hasProperShip() {
@@ -274,18 +344,19 @@ public class Bullet extends Entity {
 		else if (getShip() == null)
 			return true;
 		else if (getWorld() == null)
-			// This bullet must be loaded on its ship.
+			// This bullet must be loaded on its ship, because it is associated to a ship but not to a world.
 			return getShip().hasLoadedInMagazine(this);
 		else
 			// This bullet must have been fired by its ship.
-			// Because if canHaveAsShip() is true, getShip() != null and getWorld() != null
-			// it must hold that (getWorld() == getShip().getWorld())
+			// At this point we know that canHaveAsShip(getShip()) is true, getShip() != null and getWorld() != null,
+			// so it must hold that (getWorld() == getShip().getWorld()). We therefore do not have to check this equality.
 			return getShip().hasFired(this);
 	}
 	
 	/**
 	 * Set this bullet to fire configuration.
-	 * @post | if (getShip() != null && getShip().hasLoadedInMagazine(this))
+	 * 
+	 * @post | if (!isTerminated() && getShip() != null && getShip().hasLoadedInMagazine(this))
 	 * 		 | 	then Entity.getDistanceBetweenCentres(new, getShip()) == (1 + 5 * (1 - ACCURACY_FACTOR)) * Entity.getSumOfRadii(this, getShip())
 	 * 		 | 		&& (new.getPosition().getyComponent() - getShip().getPosition().getyComponent() ==
 	 * 		 |			Math.tan(getShip().getOrientation()) * ((new.getPosition().getxComponent() - getShip().getPosition().getxComponent() )
@@ -293,8 +364,8 @@ public class Bullet extends Entity {
 	 * 		 |			Math.tan(getShip().getOrientation()) * new.getVelocity().getxComponent()
 	 * @note This method must only be invoked in the method fireBullet() of the class Ship
 	 */
-	void setToFireConfiguration() {
-		if (getShip() != null && getShip().hasLoadedInMagazine(this)) {
+	void setToFireConfiguration() throws IllegalComponentException, IllegalPositionException {
+		if (!isTerminated() && getShip() != null && getShip().hasLoadedInMagazine(this)) {
 			double newDistanceBetweenCentres = (1 + 5 * (1 - ACCURACY_FACTOR)) * Entity.getSumOfRadii(this, getShip());
 			double angle = getShip().getOrientation();
 			setPosition(getShip().getPosition().getxComponent() + newDistanceBetweenCentres * Math.cos(angle),
@@ -305,14 +376,17 @@ public class Bullet extends Entity {
 	
 	/**
 	 * Set this bullet to the load configuration.
-	 * @post | if (getShip() != null)
+	 * 
+	 * @post | if (!isTerminated() && (getShip() != null) && getShip().hasLoadedInMagazine(this))
 	 * 		 | 	then new.getPosition().equals(new Position(0, 0)) &&
 	 * 		 |			new.getVelocity().equals(new Velocity(0, 0)) && (new.getNbOfBounces() == 0)
 	 * @note This method must only be invoked in the method loadBullet() of the class Ship
 	 */
 	void setToLoadConfiguration() {
-		if (getShip() != null && getShip().hasLoadedInMagazine(this)) {
+		if (!isTerminated() && (getShip() != null) && getShip().hasLoadedInMagazine(this)) {
 			setPosition(getShip().getPosition());
+			//Cannot throw IllegalComponentException or IllegalPositionException because getShip() is on a legal position (and if this bullet
+			// is associated to a world, getShip() is associated to the same world because of the class invariant).
 			setVelocity(0, 0);
 			resetNbOfBounces();
 		}
@@ -320,12 +394,10 @@ public class Bullet extends Entity {
 	
 	/**
 	 * Set the ship of this bullet to the given ship.
+	 * 
 	 * @param ship
 	 * 		The new ship for this bullet.
-	 * @post | if ( (ship == null && (getShip() == null || ! getShip().hasAsBullet(this))))
-	 * 		 | 	then new.getShip() == ship
-	 * @post | if (ship != null && ship.hasAsBullet(this))
-	 * 		 |	then new.getShip() == ship
+	 * @post    | new.getShip() == ship
 	 * @throws IllegalMethodCallException
 	 * 			| ( ( ship != null && ! ship.hasAsBullet(this)) ||
 	 * 		   	|	(ship == null && getShip() != null && getShip().hasAsBullet(this))
@@ -334,7 +406,9 @@ public class Bullet extends Entity {
 	 */
 	@Raw
 	void setShip(Ship ship) throws IllegalMethodCallException {
-		if (( ship != null && ! ship.hasAsBullet(this)) ||
+		if (isTerminated())
+			throw new TerminatedException();
+		if ((ship != null && ! ship.hasAsBullet(this)) ||
 				(ship == null && getShip() != null && getShip().hasAsBullet(this)))
 			throw new IllegalMethodCallException();
 		this.ship = ship;

@@ -866,7 +866,7 @@ public abstract class Entity {
 	/**TODO
 	 * @throws IllegalMethodCallException
 	 */
-	public abstract void bounceOfBoundary() throws IllegalMethodCallException;
+	public abstract void bounceOfBoundary() throws TerminatedException, IllegalMethodCallException, IllegalArgumentException;
 	
 	/**
 	 * Check whether this entity can have the given world as world.

@@ -513,7 +513,7 @@ public class Ship extends Entity {
 	 * 		| bullet == null
 	 */
 	@Raw
-	void removeAsLoadedBullet(Bullet bullet) throws IllegalBulletException, NullPointerException {
+	private void removeAsLoadedBullet(Bullet bullet) throws IllegalBulletException, NullPointerException {
 		if (! hasLoadedInMagazine(bullet))
 			throw new IllegalBulletException();
 		this.magazine.remove(bullet);
@@ -547,22 +547,6 @@ public class Ship extends Entity {
 	}
 	
 	/**
-	 * @param bullet
-	 * @throws IllegalArgumentException
-	 */
-	void removeBullet(Bullet bullet) throws IllegalArgumentException {
-		if (! hasAsBullet(bullet))
-			throw new IllegalArgumentException();
-		else {
-			if (hasLoadedInMagazine(bullet))
-				removeAsLoadedBullet(bullet);
-			else if (hasFired(bullet))
-				removeAsFiredBullet(bullet);
-			bullet.setShip(null);
-		}
-	}
-	
-	/**
 	 * Remove the given bullet from the collection of fired bullets of this ship.
 	 * @param bullet
 	 * 		The bullet to remove the collection of fired bullets of this ship.
@@ -578,10 +562,29 @@ public class Ship extends Entity {
 	 * 		| bullet == null
 	 */
 	@Raw
-	void removeAsFiredBullet(Bullet bullet) throws IllegalBulletException, NullPointerException {
+	private void removeAsFiredBullet(Bullet bullet) throws IllegalBulletException, NullPointerException {
 		if (! hasFired(bullet))
 			throw new IllegalBulletException();
 		this.firedBullets.remove(bullet);
+	}
+	
+	/**
+	 * @param bullet
+	 * @throws IllegalArgumentException
+	 */
+	void removeBullet(Bullet bullet) throws IllegalArgumentException {
+		if (! hasAsBullet(bullet))
+			throw new IllegalArgumentException();
+		else {
+			if (hasLoadedInMagazine(bullet))
+				removeAsLoadedBullet(bullet);
+			else if (hasFired(bullet))
+				removeAsFiredBullet(bullet);
+			bullet.setShip(null);
+			//Cannot throw IllegalMethodCallException because at this point certainly !hasAsBullet(bullet).
+			//Cannot throw TerminatedException because we have that this.hasAsBullet(bullet) and then the class invariant implies that
+			//	this.canHaveAsBullet(bullet).
+		}
 	}
 	
 	/**
@@ -609,6 +612,7 @@ public class Ship extends Entity {
 	 * 			|	then result == true
 	 * 			| else
 	 * 			|	result == false
+	 * TODO !bullet.isTerminated()
 	 */
 	@Raw
 	public boolean canHaveAsBullet(Bullet bullet) {
@@ -667,7 +671,7 @@ public class Ship extends Entity {
 	}
 	
 	/**
-	 * Return the set all fired, non-terminated bullets by this ship.
+	 * Return the set of all fired, non-terminated bullets by this ship.
 	 */
 	@Model @Basic
 	private Set<Bullet> getFiredBullets() {
@@ -681,7 +685,7 @@ public class Ship extends Entity {
 	 * 			and added to the world containing this ship, if any, and hasFired(randomBullet) is true.
 	 * 		| if (getNbOfBulletsInMagazine() != 0 && getWorld() != null)
 	 * 		|	then for precisely one bullet in getMagazine():
-	 * 		|		hasFired((new bullet)) && ! hasLoadedInMagazine((new bullet))
+	 * 		|		new.hasFired((new bullet)) && ! new.hasLoadedInMagazine((new bullet))
 	 * @effect If the magazine of this ship is not empty, said random bullet is set to fire configuration.
 	 * 		| randomBullet.setToFireConfiguration() 
 	 */
@@ -691,6 +695,7 @@ public class Ship extends Entity {
 			Bullet bulletToFire = (Bullet)getMagazine().toArray()[0];
 			try {
 				bulletToFire.setToFireConfiguration();
+				// Cannot throw IllegalPositionException because this bullet is not contained in a world yet.
 				removeAsLoadedBullet(bulletToFire);
 				// Cannot throw IllegalBulletException, since bulletToFire was loaded in the magazine. 
 				addAsFiredBullet(bulletToFire);
@@ -728,7 +733,7 @@ public class Ship extends Entity {
 	 * @effect The bullet is set to the load configuration.
 	 * 		| bullet.setToLoadConfiguration()
 	 * @post This ship has the given bullet loaded in its magazine and this ship has not fired this bullet.
-	 * 		| hasLoadedInMagazine(bullet) && ! hasFired(bullet)
+	 * 		| new.hasLoadedInMagazine(bullet) && ! new.hasFired(bullet)
 	 * @throws IllegalBulletException
 	 * 			This ship cannot have the given bullet as bullet,
 	 * 				or (the given bullet does not lie fully within the bounds of this ship and this ship has not fired the given bullet),
@@ -745,6 +750,8 @@ public class Ship extends Entity {
 			removeAsFiredBullet(bullet);
 		addAsLoadedBullet(bullet);
 		bullet.setShip(this);
+		//Cannot throw IllegalMethodCallException because this ship is effective and the given bullet has been loaded in the magazine.
+		//Cannot throw TerminatedException because canHaveAsBullet(bullet) implies !bullet.isTerminated().
 		if (bullet.getWorld() != null)
 			getWorld().removeEntity(bullet);
 			//The method removeEntity cannot throw an exception because all conditions to throw exceptions are false in this case.
