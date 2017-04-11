@@ -363,7 +363,7 @@ public class Ship extends Entity {
 	/**
 	 * Variable registering the thruster force of this ship.
 	 */
-	private double thrusterForce = 1.1e20;
+	private double thrusterForce = 1.1e21;
 	
 	
 	/**

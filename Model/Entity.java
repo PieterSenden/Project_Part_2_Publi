@@ -941,6 +941,7 @@ public abstract class Entity {
 	 * 			|	(world == null && getWorld() != null && getWorld().hasAsEntity(this))
 	 * 
 	 */
+	@Model
 	void setWorld(World world) throws IllegalMethodCallException, TerminatedException {
 		if (isTerminated())
 			throw new TerminatedException();
