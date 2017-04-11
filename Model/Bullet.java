@@ -336,12 +336,22 @@ public class Bullet extends Entity {
 	}
 	
 	/**
-	 * TODO
+	 * Resolve a collision between a bullet and another entity.
+	 * Only collisions between bullets and other bullets or ships are resolved.
+	 * 
+	 * @effect	| if (other instanceof Ship && ((Ship)other).hasFired(this))
+	 * 			|	then ((Ship)other).loadBullet(this)
+	 * @effect	| if ((other instanceof Ship && !((Ship)other).hasFired(this)) || other instancof Bullet)
+	 * 			|	then this.terminate() && other.terminate()
+	 * @throws	TerminatedException
+	 * 			| this.isTerminated() || other.isTerminated()
+	 * @throws	IllegalMethodCallException
+	 * 			| (getWorld() == null) || (getWorld() != other.getWorld()) || !Entity.apparentlyCollide(this, other)
 	 */
 	@Override
 	public void resolveCollision(Entity other) throws IllegalMethodCallException, TerminatedException {
 		if (isTerminated() || other.isTerminated())
-			throw new IllegalStateException();
+			throw new TerminatedException();
 		if (getWorld() == null || getWorld() != other.getWorld() || !Entity.apparentlyCollide(this, other))
 			throw new IllegalMethodCallException();
 		if (other instanceof Ship)
