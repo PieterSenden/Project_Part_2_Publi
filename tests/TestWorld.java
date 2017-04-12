@@ -2,6 +2,7 @@ package asteroids.tests;
 
 import static org.junit.Assert.*;
 
+import java.util.HashSet;
 import java.util.Set;
 
 import org.junit.Before;
@@ -50,6 +51,7 @@ public class TestWorld {
 		ship2 = new Ship(600, 500, -10, 0, 10, 0);
 		evolvingWorld.addEntity(ship1);
 		evolvingWorld.addEntity(ship2);
+		assert evolvingWorld.hasProperEntities();
 	}
 	
 	@Test
@@ -239,5 +241,75 @@ public class TestWorld {
 	@Test
 	public void getCollisions() {
 		Set<Set<Entity>> collisionSet = testWorld.getCollisions();
+		//Check whether each element of collisionSet denotes a proper collision.
+		for (Set<Entity> collision: collisionSet) {
+			if (collision.size() == 1)
+				assertTrue(((Entity)collision.toArray()[0]).apparentlyCollidesWithBoundary());
+			else if (collision.size() == 2) {
+				Object[] collisionArray = collision.toArray();
+				Entity entity1 = (Entity)collisionArray[0];
+				Entity entity2 = (Entity)collisionArray[1];
+				assertTrue(Entity.apparentlyCollide(entity1, entity2));
+			}
+			else
+				fail("Illegal collision in getCollisions()");
+		}
+		//Check whether all collisions in the world are in the collisionSet.
+		for (Entity entity: testWorld.getEntities()) {
+			if (entity.apparentlyCollidesWithBoundary()) {
+				Set<Entity> collision = new HashSet<>();
+				collision.add(entity);
+				assertTrue(collisionSet.contains(collision));
+			}
+			for (Entity other: testWorld.getEntities()) {
+				if ((entity != other) && Entity.apparentlyCollide(entity, other)) {
+					Set<Entity> collision = new HashSet<>();
+					collision.add(entity);
+					collision.add(other);
+					assertTrue(collisionSet.contains(collision));
+				}
+			}
+		}
+	}
+	
+	@Test
+	public void evolve_LegalCase() {
+		evolvingWorld.evolve(5, null);
+		assertEquals(ship1.getPosition().getxComponent(), 450, EPSILON);
+		assertEquals(ship1.getPosition().getyComponent(), 500, EPSILON);
+		assertEquals(ship1.getVelocity().getxComponent(), 10, EPSILON);
+		assertEquals(ship1.getVelocity().getyComponent(), 0, EPSILON);
+		assertEquals(ship2.getPosition().getxComponent(), 550, EPSILON);
+		assertEquals(ship1.getPosition().getyComponent(), 500, EPSILON);
+		assertEquals(ship2.getVelocity().getxComponent(), -10, EPSILON);
+		assertEquals(ship2.getVelocity().getyComponent(), 0, EPSILON);
+		
+		evolvingWorld.evolve(4, null);
+		assertEquals(ship1.getPosition().getxComponent(), 490, EPSILON);
+		assertEquals(ship1.getPosition().getyComponent(), 500, EPSILON);
+		assertEquals(ship2.getPosition().getxComponent(), 510, EPSILON);
+		assertEquals(ship1.getPosition().getyComponent(), 500, EPSILON);
+		//We do not test for the velocity here, because the ships must collide after 9 seconds and we don't exactly know whether the
+		// collision is already resolved or it will be in the next instant of time.
+		
+		evolvingWorld.evolve(9, null);
+		assertEquals(ship1.getPosition().getxComponent(), 400, EPSILON);
+		assertEquals(ship1.getPosition().getyComponent(), 500, EPSILON);
+		assertEquals(ship1.getVelocity().getxComponent(), -10, EPSILON);
+		assertEquals(ship1.getVelocity().getyComponent(), 0, EPSILON);
+		assertEquals(ship2.getPosition().getxComponent(), 600, EPSILON);
+		assertEquals(ship1.getPosition().getyComponent(), 500, EPSILON);
+		assertEquals(ship2.getVelocity().getxComponent(), 10, EPSILON);
+		assertEquals(ship2.getVelocity().getyComponent(), 0, EPSILON);
+	}
+	
+	@Test(expected=IllegalArgumentException.class)
+	public void evolve_NegativeDuration() {
+		evolvingWorld.evolve(-1, null);
+	}
+	
+	@Test(expected=TerminatedException.class)
+	public void evolve_TerminatedWorld() {
+		terminatedWorld.evolve(1, null);
 	}
 }

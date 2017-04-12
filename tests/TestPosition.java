@@ -6,12 +6,12 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import asteroids.model.IllegalComponentException;
-import asteroids.model.Position;
+import asteroids.model.representation.*;
 
 public class TestPosition {
 	
-	private static Position position_00, position_34;
+	private static Position position_00, otherPosition_00, position_34;
+	private static Velocity velocity_00, velocity_12;
 	
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
@@ -19,65 +19,18 @@ public class TestPosition {
 	
 	@Before
 	public void setUp() throws Exception {
-		position_00 = new Position(0,0);
-		position_34 = new Position(3,4);
+		position_00 = new Position(0, 0);
+		otherPosition_00 = new Position(0, 0);
+		position_34 = new Position(3, 4);
+		velocity_00 = new Velocity(0, 0);
+		velocity_12 = new Velocity(1, 2);
 	}
 	
 	@Test
-	public void testConstructor_LegalCase() {
+	public void Constructor_LegalCase() {
 		Position myPosition = new Position(1,2);
 		assertEquals(myPosition.getxComponent(), 1, 0.01);
 		assertEquals(myPosition.getyComponent(), 2, 0.01);
-	}
-	
-	@Test(expected=IllegalComponentException.class)
-	public void testConstructor_IllegalCase() {
-		new Position(Double.POSITIVE_INFINITY,2);
-	}
-	
-	@Test
-	public void testIsValidComponent_ValidCase() {
-		assertTrue(Position.isValidComponent(0));
-	}
-	
-	@Test
-	public void testIsValidComponent_InfiniteCase() {
-		assertFalse(Position.isValidComponent(Double.NEGATIVE_INFINITY));
-	}
-	
-	@Test
-	public void testIsValidComponent_NaNCase() {
-		assertFalse(Position.isValidComponent(Double.NaN));
-	}
-	
-	@Test
-	public void testSetxComponent_LegalCase() {
-		position_00.setxComponent(3);
-		assertEquals(position_00.getxComponent(), 3, 0.01);
-	}
-	
-	@Test(expected=IllegalComponentException.class)
-	public void testSetxComponent_IllegalCase() {
-		position_00.setxComponent(Double.POSITIVE_INFINITY);
-	}
-	
-	@Test
-	public void testSetyComponent_LegalCase() {
-		position_00.setyComponent(5);
-		assertEquals(position_00.getyComponent(), 5, 0.01);
-	}
-	
-	@Test(expected=IllegalComponentException.class)
-	public void testSetyComponent_IllegalCase() {
-		position_00.setyComponent(Double.NEGATIVE_INFINITY);
-	}
-	
-	@Test
-	public void clone_RegularCase() {
-		Position newPosition = position_00.clone();
-		assertNotEquals(position_00, newPosition);
-		assertEquals(position_00.getxComponent(), newPosition.getxComponent(), 0.01);
-		assertEquals(position_00.getyComponent(), newPosition.getyComponent(), 0.01);
 	}
 	
 	@Test
@@ -91,8 +44,33 @@ public class TestPosition {
 	}
 	
 	@Test
-	public void getAsArrayTest(){
-		assertEquals(position_34.getAsArray()[0], 3, 0.01);
-		assertEquals(position_34.getAsArray()[1], 4, 0.01);
+	public void move_LegalCase() {
+		Position movedPosition = position_00.move(velocity_12, 5);
+		assertEquals(movedPosition, new Position(5, 10));
+	}
+	
+	@Test(expected=IllegalArgumentException.class)
+	public void move_NegativeDuration() {
+		position_00.move(velocity_12, -1);
+	}
+	
+	@Test(expected=IllegalArgumentException.class)
+	public void move_NullVelocity() {
+		position_00.move(null, 1);
+	}
+	
+	@Test
+	public void equals_EqualCase() {
+		assertTrue(position_00.equals(otherPosition_00));
+	}
+	
+	@Test
+	public void equals_NotSameType() {
+		assertFalse(position_00.equals(velocity_00));
+	}
+	
+	@Test
+	public void equals_NotEqualPosition() {
+		assertFalse(position_00.equals(position_34));
 	}
 }
