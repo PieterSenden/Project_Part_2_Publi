@@ -7,13 +7,13 @@ import be.kuleuven.cs.som.annotate.*;
 
 /**
  * A class representing a circular space ship dealing with
- * position, velocity, orientation, radius, density, mass and total mass.
+ * position, velocity, orientation, radius, density, mass, total mass and bullets.
  * 
  * @invar  The orientation of each ship must be a valid orientation for any ship.
  *       | isValidOrientation(getOrientation())
  * @invar  The minimal radius of each ship must be a valid minimal radius for any ship.
  *       | isValidMinimalRadius(getMinimalRadius())
- * @invar  The thrusterForce for this ship is a valid thrusterForce for any ship.
+ * @invar  The thruster force for this ship is a valid thruster force for any ship.
  *       | isValidThrusterForce(this.getThrusterForce())
  * @invar  Each ship must have proper bullets.
  * 		 | hasProperBullets()
@@ -23,28 +23,27 @@ import be.kuleuven.cs.som.annotate.*;
  *
  */
 
-//TODO Add terminated checks.
 
 public class Ship extends Entity {
 	
 	/**
-	 * Initialize this new ship with given xCoordinate, yCoordinate, velocity with xComponent and yComponent, radius and orientation
-	 * @param xCoordinate
-	 * 			xCoordinate of this new ship
-	 * @param yCoordinate
-	 * 			yCoordinate of this new ship
-	 * @param xComponent
+	 * Initialize this new ship with given position, velocity , radius, orientation, density, mass and thruster status.
+	 * @param xComPos
+	 * 			xComponent of the position this new ship
+	 * @param yComPos
+	 * 			yComponent of the position this new ship
+	 * @param xComVel
 	 * 			xComponent of the velocity of this new ship
-	 * @param yComponent
+	 * @param yComVel
 	 * 			yComponent of the velocity of this new ship
 	 * @param radius
 	 * 			radius of this new ship
 	 * @param orientation
 	 * 			orientation of this new ship
-	 * @effect The position of this new ship is set to a new position with given xCoordinate and yCoordinate
-	 * 			| setPosition(xCoordinate, yCoordinate)
+	 * @effect The position of this new ship is set to a new position with given xComponent and yComponent
+	 * 			| setPosition(xComPos, yComPos)
 	 * @effect The velocity of this new ship is set to a new velocity with given xComponent and yComponent
-	 * 			| setVelocity(xComponent, yComponent)
+	 * 			| setVelocity(xComVel, yComVel)
 	 * @effect The orientation of this new ship is set to the given orientation
 	 * 			| setOrientation(orientation)
 	 * @post   If the given radius is valid, the radius of this new ship is set to the given radius
@@ -62,6 +61,18 @@ public class Ship extends Entity {
 		setOrientation(orientation);
 	}
 	
+	
+	/**
+	 * Initialize this new ship with position with given xComponent and yComponent, 
+	 * @param xComPos
+	 * @param yComPos
+	 * @param xComVel
+	 * @param yComVel
+	 * @param radius
+	 * @param orientation
+	 * @throws IllegalComponentException
+	 * @throws IllegalRadiusException
+	 */
 	@Raw 
 	public Ship(double xComPos, double yComPos, double xComVel, double yComVel, double radius,
 			double orientation) throws IllegalComponentException, IllegalRadiusException {
@@ -75,16 +86,17 @@ public class Ship extends Entity {
 	}
 	
 	/**
-	 * Initialize a new ship with given xCoordinate, yCoordinate and radius.
-	 * @param xCoordinate
-	 * 			xCoordinate of this new ship
-	 * @param yCoordinate
-	 * 			yCoordinate of this new ship
+	 * Initialize a new ship with given xComponent, yComponent and radius.
+	 * 
+	 * @param xComponent
+	 * 			xComponent of this new ship
+	 * @param yComponent
+	 * 			yComponent of this new ship
 	 * @param radius
 	 * 			radius of this new ship
-	 * @effect This new ship is initialized with the given xCoordinate and yCoordinate as its position, the given radius as its radius,
+	 * @effect This new ship is initialized with the given xComponent and yComponent as its position, the given radius as its radius,
 	 * 			zero velocity and right-pointing orientation.
-	 * 			| this(xCoordinate, yCoordinate, 0, 0, radius, 0)
+	 * 			| this(xComponent, yComponent, 0, 0, radius, 0)
 	 */
 	@Raw
 	public Ship(double xComPos, double yComPos, double radius) throws IllegalComponentException, IllegalRadiusException {
@@ -92,15 +104,31 @@ public class Ship extends Entity {
 	}
 	
 	/**
+	 * Return a copy of this ship.
+	 * 
 	 * @return A copy of this ship.
+	 * 			| @see implementation
+	 * @throws TerminatedException
+	 * 			| this.isTerminated()
 	 */
 	@Override
-	public Ship copy() {
+	public Ship copy() throws TerminatedException {
+		if (isTerminated())
+			throw new TerminatedException();
 		return new Ship(getPosition().getxComponent(), getPosition().getyComponent(), getVelocity().getxComponent(),
-				getVelocity().getyComponent(), getRadius(), getOrientation());
+				getVelocity().getyComponent(), getRadius(), getOrientation(), getDensity(), getMass(), hasThrusterActivated());
 	}
 	
-	/** TODO
+	/**
+	 * Terminate this ship.
+	 * 
+	 * @post All loaded bullets have been removed from the magazine of this ship.
+	 * 		| getMagazine().isEmpty()
+	 * @post All fired bullets have been removed from the collection of fired bullets of this ship.
+	 * 		| getFiredBullets().isEmpty()
+	 * @effect The super method is called to terminate this ship.
+	 * 		| super.terminate()
+	 * 
 	 */
 	@Override
 	public void terminate() {
@@ -113,30 +141,29 @@ public class Ship extends Entity {
 			for (Bullet bullet: firedBulletsClone) {
 				removeBullet(bullet);
 			}
-			if (getWorld() != null) {
-				getWorld().removeEntity(this);
-			}
 			super.terminate();
 		}
 	}
 	
-	/**
-	 * TODO
-	 */
-	@Override
-	protected void setPosition(double xComponent, double yComponent) throws IllegalComponentException, IllegalPositionException {
-		setPosition(new Position(xComponent, yComponent));
-	}
+//	/**
+//	 * 
+//	 */
+//	@Override
+//	protected void setPosition(double xComponent, double yComponent) throws IllegalComponentException, IllegalPositionException {
+//		setPosition(new Position(xComponent, yComponent));
+//	}
 	
 	/**
-	 * TODO
+	 * Set the position of this ship to the given position.
+	 * 
+	 * @effect The position of this ship is set to the given position.
+	 * 		| super.setPosition(position) 
+	 * @post Each bullet in the magazine of this ship has the given position as its position.
+	 * 		| for each bullet in getMagazine():
+	 * 		|	bullet.getPosition().equals(position)
 	 */
 	@Override
-	protected void setPosition(Position position) {
-		if (isTerminated())
-			throw new IllegalStateException();
-		if (!canHaveAsPosition(position))
-			throw new IllegalPositionException();
+	protected void setPosition(Position position) throws IllegalComponentException, IllegalPositionException, TerminatedException {
 		super.setPosition(position);
 		if (this.magazine != null) {
 			for (Bullet bullet: getMagazine()) {
@@ -155,6 +182,7 @@ public class Ship extends Entity {
 	
 	/**
 	 * Check whether the given orientation is a valid orientation for any ship.
+	 * 
 	 * @param  orientation
 	 *         The orientation to check.
 	 * @return true iff the value of orientation is contained in the interval [0, 2*Pi]
@@ -198,9 +226,12 @@ public class Ship extends Entity {
 	private double orientation;
 	
 	/**
+	 * Check whether this ship can have the given radius as its radius.
+	 * 
 	 * @param radius
 	 * 			The radius to check.
-	 * @return @see implementation.
+	 * @return True iff the given radius is greater than or equal to the minimal radius of any ship.
+	 * 		  |	@see implementation.
 	 */
 	@Override
 	public boolean canHaveAsRadius(double radius) {
@@ -218,10 +249,10 @@ public class Ship extends Entity {
 	/**
 	 * Check whether the given minimal radius is a valid minimal radius for any ship.
 	 *  
-	 * @param  minimal radius
+	 * @param  minimalRadius
 	 *         The minimal radius to check.
-	 * @return true iff the given minimalRadius is greater than getMinimalRadius().
-	 *       | result == minimalRadius >= getMinimalRadius()
+	 * @return true iff the given minimal radius is greater than or equal to getMinimalRadius().
+	 *       | result == (minimalRadius >= getMinimalRadius())
 	 */
 	public static boolean isValidMinimalRadius(double minimalRadius) {
 		return minimalRadius >= Ship.getMinimalRadius();
@@ -249,19 +280,20 @@ public class Ship extends Entity {
 	 */
 	private static double minimalRadius = 10;
 	
-	/**
-	 * Check whether this ship can have the given mass as its mass
-	 * @return True iff the given mass is greater than or equal to the volume of this ship times its density
-	 * 			| @see implementation
-	 */
-	@Override
-	public boolean canHaveAsMass(double mass) {
-		return (mass >= getVolume() * getDensity());
-	}
+//	/**
+//	 * Check whether this ship can have the given mass as its mass
+//	 * @return True iff the given mass is equal to the volume of this ship times its density
+//	 * 			| @see implementation
+//	 */
+//	@Override
+//	public boolean canHaveAsMass(double mass) {
+//		return (mass == getVolume() * getDensity());
+//	}
 	
 	/**
-	 * Check whether this ship can have the given density as its density
-	 * @return True iff the given density is greater than or equal to the minimal density
+	 * Check whether this ship can have the given density as its density.
+	 * 
+	 * @return True iff the given density is greater than or equal to the minimal density of this ship.
 	 * 			| @see implementation
 	 */
 	@Override
@@ -277,6 +309,10 @@ public class Ship extends Entity {
 		return minimalDensity;
 	}
 	
+	
+	/**
+	 * Variable registering the minimal density of this ship. 
+	 */
 	private final double minimalDensity = 1.42e12;
 	
 	/**
@@ -321,10 +357,10 @@ public class Ship extends Entity {
 	}
 	
 	/**
-	 * Return the acceleration of this ship (in km / s^2)
+	 * Return the acceleration of this ship
 	 * @return 0 if the thruster of this ship is not activated, and the quotient of this ship's thruster force and mass if the
 	 * 				thruster is activated
-	 * 			| if (hasThrusterActivated()) then result == getThrusterForce() / (getMass() * 1000)
+	 * 			| if (hasThrusterActivated()) then result == getThrusterForce() / getMass()
 	 * 			|	else result == 0
 	 */
 	public double getAcceleration() {
@@ -363,7 +399,7 @@ public class Ship extends Entity {
 	/**
 	 * Variable registering the thruster force of this ship.
 	 */
-	private double thrusterForce = 1.1e21;
+	private double thrusterForce = 1.1e20;
 	
 	
 	/**
@@ -432,10 +468,21 @@ public class Ship extends Entity {
 	}
 	
 	
-	/** TODO
+	/** 
+	 * Make this ship bounce of the boundary of its world.
+	 * @effect	| if (collidesWithHorizontalBoundary())
+	 * 			|	then setVelocity(getVelocity().getxComponent(), -getVelocity().getyComponent())
+	 * @effect	| if (collidesWithVerticalBoundary())
+	 * 			|	then setVelocity(-getVelocity().getxComponent(), getVelocity().getyComponent())
+	 * @throws	TerminatedException
+	 * 			| isTerminated()
+	 * @throws	IllegalMethodCallException
+	 * 			| getWorld() == null || !collidesWithBoundary()
 	 */
 	@Override
-	public void bounceOfBoundary() throws IllegalMethodCallException {
+	public void bounceOfBoundary() throws IllegalMethodCallException, TerminatedException {
+		if (isTerminated())
+			throw new TerminatedException();
 		if (getWorld() == null || !collidesWithBoundary())
 			throw new IllegalMethodCallException();
 		else if (collidesWithHorizontalBoundary())
@@ -445,12 +492,23 @@ public class Ship extends Entity {
 	}
 	
 	/**
-	 * TODO
+	 * Resolve a collision between this ship and another entity.
+	 * Only collisions between ships and other ships or bullets are resolved.
+	 * 
+	 * @effect	If the other entity is a ship, resolve the collision between this ship and the other ship.
+	 * 			| if (other instanceof Ship)
+	 * 			|	then (Ship.resolveCollisionBetweenShips(this, (Ship)other))
+	 * @effect	If the other entity is a bullet and this ship has not fired said bullet, terminate both entities.
+	 * 			| if (other instanceof Bullet && !this.hasFired((Bullet)other))
+	 * 			|	then this.terminate() && other.terminate()
+	 * @effect	If the other entity is a bullet and this ship has fired said bullet, load the bullet on this ship.
+	 * 			| if ( other instanceof Bullet && this.hasFired((Bullet)other) )
+	 * 			|	then loadBullet((Bullet)other)
 	 */
 	@Override
 	public void resolveCollision(Entity other) throws IllegalMethodCallException, TerminatedException {
 		if (isTerminated() || other.isTerminated())
-			throw new IllegalStateException();
+			throw new TerminatedException();
 		if (getWorld() == null || getWorld() != other.getWorld() || !Entity.apparentlyCollide(this, other))
 			throw new IllegalMethodCallException();
 		if (other instanceof Ship)
@@ -466,12 +524,22 @@ public class Ship extends Entity {
 	}
 	
 	/**
-	 * TODO
+	 * Resolve a collision between two ships.
 	 * @param ship1
+	 * 			The first ship involved in a collision.
 	 * @param ship2
+	 * 			The second ship involved in a collision.
+	 * @effect The velocities of both ships are adjusted according to the physical laws regarding conservation of momentum. 
+	 * 			| @see implementation
 	 * @throws IllegalMethodCallException
+	 * 			The two ships do not apparently collide.
+	 * 			| !Entity.apparentlyCollide(ship1, ship2)
+	 * @throws TerminatedException
+	 * 			One of the ships is terminated
+	 * 			| ship1.isTerminated() || ship2.isTerminated()
+	 * 
 	 */
-	static void resolveCollisionBetweenShips(Ship ship1, Ship ship2) throws IllegalMethodCallException {
+	static void resolveCollisionBetweenShips(Ship ship1, Ship ship2) throws IllegalMethodCallException, TerminatedException {
 		if (!Entity.apparentlyCollide(ship1, ship2))
 			throw new IllegalMethodCallException();
 		double dx, dy, dvx, dvy, sumOfRadii, dvDotdr, m1, m2;
@@ -498,7 +566,8 @@ public class Ship extends Entity {
 	 * 
 	 * @param other
 	 * 			The other entity.
-	 * @return	| !(other instanceof Bullet) || !hasFired((Bullet)other)
+	 * @return	True iff the other entity is not a bullet or (the other entity is a bullet and this ship has not fired said bullet)
+	 * 			| !(other instanceof Bullet) || !hasFired((Bullet)other)
 	 */
 	@Override
 	public boolean mustShowCollisionWith(Entity other) {
@@ -542,9 +611,14 @@ public class Ship extends Entity {
 	 * @throws IllegalBulletException
 	 * 		This ship cannot have the given bullet as bullet.
 	 * 		| ! canHaveAsBullet(bullet)
+	 * @throws TerminatedException
+	 * 		This ship is terminated
+	 * 		| this.isTerminated()
 	 */
 	@Raw
-	private void addAsLoadedBullet(@Raw Bullet bullet) throws IllegalBulletException {
+	private void addAsLoadedBullet(@Raw Bullet bullet) throws IllegalBulletException, TerminatedException {
+		if (this.isTerminated())
+			throw new TerminatedException();
 		if (! canHaveAsBullet(bullet))
 			throw new IllegalBulletException();
 		this.magazine.add(bullet);
@@ -564,14 +638,16 @@ public class Ship extends Entity {
 	 * @throws NullPointerException
 	 * 			The given bullet is not effective.
 	 * 		| bullet == null
+	 * @throws TerminatedException
+	 * 			This ship is terminated
+	 * 			| this.isTerminated()
 	 */
 	@Raw
-	private void removeAsLoadedBullet(Bullet bullet) throws IllegalBulletException, NullPointerException {
+	private void removeAsLoadedBullet(Bullet bullet) throws IllegalBulletException, NullPointerException, TerminatedException {
 		if (! hasLoadedInMagazine(bullet))
 			throw new IllegalBulletException();
 		this.magazine.remove(bullet);
 	}
-	
 	
 	/**
 	 * Check whether this ship has fired the given bullet. 
@@ -583,6 +659,7 @@ public class Ship extends Entity {
 	
 	/**
 	 * Add the given bullet to the collection of fired bullets of this ship.
+	 * 
 	 * @param bullet
 	 * 		The bullet to be added to the collection of fired bullets of this ship.
 	 * @post If this ship can have the given bullet as bullet, then the bullet is added to the collection of fired bullets of this ship.
@@ -591,9 +668,14 @@ public class Ship extends Entity {
 	 * @throws IllegalBulletException
 	 * 		This ship cannot have the given bullet as bullet.
 	 * 		| ! canHaveAsBullet(bullet)
+	 * @throws TerminatedException
+	 * 		This ship is terminated
+	 * 		| this.isTerminated()
 	 */
 	@Raw
-	private void addAsFiredBullet(@Raw Bullet bullet) throws IllegalBulletException {
+	private void addAsFiredBullet(@Raw Bullet bullet) throws IllegalBulletException, TerminatedException {
+		if (this.isTerminated())
+			throw new TerminatedException();
 		if (! canHaveAsBullet(bullet))
 			throw new IllegalBulletException();
 		this.firedBullets.add(bullet);
@@ -601,8 +683,9 @@ public class Ship extends Entity {
 	
 	/**
 	 * Remove the given bullet from the collection of fired bullets of this ship.
+	 * 
 	 * @param bullet
-	 * 		The bullet to remove the collection of fired bullets of this ship.
+	 * 		The bullet to remove from the collection of fired bullets of this ship.
 	 * @post If the given bullet is effective and has been fired by this ship, then
 	 * 			the given bullet is removed from the collection of fired bullets of this ship.
 	 * 		| if (bullet != null && hasFired(bullet))
@@ -613,19 +696,33 @@ public class Ship extends Entity {
 	 * @throws NullPointerException
 	 * 			The given bullet is not effective.
 	 * 		| bullet == null
+	 * @throws TerminatedException
+	 * 		This ship is terminated
+	 * 		| this.isTerminated()
 	 */
 	@Raw
-	private void removeAsFiredBullet(Bullet bullet) throws IllegalBulletException, NullPointerException {
+	private void removeAsFiredBullet(Bullet bullet) throws IllegalBulletException, NullPointerException, TerminatedException {
+		if (this.isTerminated())
+			throw new TerminatedException();
 		if (! hasFired(bullet))
 			throw new IllegalBulletException();
 		this.firedBullets.remove(bullet);
 	}
 	
 	/**
+	 * Remove the given bullet from this ship.
 	 * @param bullet
+	 * 			The bullet to remove from this ship.
 	 * @throws IllegalArgumentException
+	 * 			This ship does not have the given bullet as bullet.
+	 * 			| ! hasAsBullet(bullet)
+	 * @throws TerminatedException
+	 * 		This ship is terminated
+	 * 		| this.isTerminated()
 	 */
-	void removeBullet(Bullet bullet) throws IllegalArgumentException {
+	void removeBullet(Bullet bullet) throws IllegalArgumentException, TerminatedException {
+		if (this.isTerminated())
+			throw new TerminatedException();
 		if (! hasAsBullet(bullet))
 			throw new IllegalArgumentException();
 		else {
@@ -655,9 +752,11 @@ public class Ship extends Entity {
 	 * Check whether this ship can be associated to the given bullet.
 	 * @param bullet
 	 * 		The bullet to check.
-	 * @return True iff the given bullet is effective and, if the bullet is associated to a world,
+	 * @return True iff this ship is not terminated, the given bullet is effective, not terminated, and, if the bullet is associated to a world,
 	 * 			this ship must be associated to the same world.
-	 * 			| if (bullet == null)
+	 * 			| if (this.isTerminated())
+	 * 			|	then result == false
+	 * 			| if (bullet == null || bullet.isTerminated())
 	 * 			|	then result == false
 	 * 			| else if (bullet.getWorld() == null)
 	 * 			|	then result == true
@@ -665,36 +764,46 @@ public class Ship extends Entity {
 	 * 			|	then result == true
 	 * 			| else
 	 * 			|	result == false
-	 * TODO !bullet.isTerminated()
 	 */
 	@Raw
 	public boolean canHaveAsBullet(Bullet bullet) {
-		return (bullet != null && (bullet.getWorld() == null || getWorld() == bullet.getWorld()));
+		return (bullet != null && (bullet.getWorld() == null || getWorld() == bullet.getWorld()) && !isTerminated() && !bullet.isTerminated());
 	}
 	
 	/**
 	 * Check whether this ship has proper bullets associated to it.
-	 * @return True iff each bullet in magazine is effective, has not been fired by this ship, is not associated to any world
+	 * @return If this ship is terminated, true iff there are no bullets in the magazine and the collection of all bullets fired by this ship is empty.
+	 * 			| if (this.isTerminated())
+	 * 			|	result == (getMagazine().isEmpty() && getFiredBullets().isEmpty())
+	 * @return If this ship is not terminated, true iff each bullet in magazine is effective, has not been fired by this ship, is not associated to any world
 	 * 			and references this ship as its ship, 
 	 * 			and each bullet that has been fired by this ship, is effective, is not loaded in the magazine of this ship,
 	 * 			is associated to the same world as this ship and references this ship as its ship.
-	 * 			| result == 
-	 * 			| 	(for each bullet in getMagazine():
-	 * 			|		!canHaveAsBullet(bullet) && bullet.getShip() == this && ! hasFired(bullet) && bullet.getWorld() == null)
-	 * 			|	&&
-	 * 			|	(for each bullet in getFiredBullets:
-	 * 			|		!canHaveAsBullet(bullet) && bullet.getShip() == this && ! hasLoadedInMagazine(bullet) && bullet.getWorld() == getWorld()) 			
+	 * 			| if (!this.isTerminated())
+	 * 			| 	then result == 
+	 * 			| 	 	(for each bullet in getMagazine():
+	 * 			|			!canHaveAsBullet(bullet) && bullet.getShip() == this && ! hasFired(bullet) && bullet.getWorld() == null)
+	 * 			|		&&
+	 * 			|		(for each bullet in getFiredBullets():
+	 * 			|			!canHaveAsBullet(bullet) && bullet.getShip() == this && ! hasLoadedInMagazine(bullet) && bullet.getWorld() == getWorld()) 			
 	 */
 	public boolean hasProperBullets() {
-		for (Bullet bullet : magazine) {
-			if (!canHaveAsBullet(bullet) || bullet.getShip() != this || hasFired(bullet) || bullet.getWorld() != null)
-				return false;
+		if (!isTerminated()) {
+			for (Bullet bullet : getMagazine()) {
+				if (!canHaveAsBullet(bullet) || bullet.getShip() != this || hasFired(bullet)
+						|| bullet.getWorld() != null)
+					return false;
+			}
+			for (Bullet bullet : getFiredBullets()) {
+				if (!canHaveAsBullet(bullet) || bullet.getShip() != this || hasLoadedInMagazine(bullet)
+						|| bullet.getWorld() != getWorld())
+					return false;
+			}
+			return true;
 		}
-		for (Bullet bullet : firedBullets) {
-			if (!canHaveAsBullet(bullet) || bullet.getShip() != this || hasLoadedInMagazine(bullet) || bullet.getWorld() != getWorld())
-				return false;
+		else {
+			return (getMagazine().isEmpty() && getFiredBullets().isEmpty());
 		}
-		return true;
 	}
 	
 	/**
@@ -733,47 +842,56 @@ public class Ship extends Entity {
 	
 	/**
 	 * Fire a bullet from the magazine of this ship.
-	 * @post If the magazine of this ship is not empty and this ship is contained in a world,
+	 * @post If this ship is not terminated and if the magazine of this ship is not empty and this ship is contained in a world,
 	 * 			then a random bullet randomBullet is removed from the magazine
 	 * 			and added to the world containing this ship, if any, and hasFired(randomBullet) is true.
 	 * 		| if (getNbOfBulletsInMagazine() != 0 && getWorld() != null)
 	 * 		|	then for precisely one bullet in getMagazine():
 	 * 		|		new.hasFired((new bullet)) && ! new.hasLoadedInMagazine((new bullet))
-	 * @effect If the magazine of this ship is not empty, said random bullet is set to fire configuration.
-	 * 		| randomBullet.setToFireConfiguration() 
+	 * @effect If this ship is not terminated and if the magazine of this ship is not empty, said random bullet is set to fire configuration.
+	 * 		| randomBullet.setToFireConfiguration()
+	 * @effect If this ship is not terminated and if the magazine of this ship is not empty and
+	 * 			if said random bullet is placed partially outside the world of this ship after setting it to fire configuration,
+	 * 			then that random bullet is immediately destroyed.
+	 * 			| if (! getWorld().boundariesSurround((new randomBullet)))
+	 * 			|	then randomBullet.terminate();
+	 * @effect If this ship is not terminated and if the magazine of this ship is not empty and
+	 * 			if said random bullet is overlapping with another entity in the world of this ship after setting it to fire configuration,
+	 * 			then that random bullet and said entity are immediately destroyed.
+	 * 			| if ( for some entity in getWorld().getEntities() : overlap(new randomBullet, entity)) 
+	 * 			|	then entity.terminate()
+	 * 			|		and randomBullet.terminate() 
 	 */
-	//TODO Add correct specification.
 	public void fireBullet() {
-		if ( getNbOfBulletsInMagazine() != 0 && getWorld() != null){
-			Bullet bulletToFire = (Bullet)getMagazine().toArray()[0];
-			try {
-				bulletToFire.setToFireConfiguration();
-				// Cannot throw IllegalPositionException because this bullet is not contained in a world yet.
-				removeAsLoadedBullet(bulletToFire);
-				// Cannot throw IllegalBulletException, since bulletToFire was loaded in the magazine. 
-				addAsFiredBullet(bulletToFire);
-				// Cannot throw IllegalBulletException, since canHaveAsBullet(bulletToFire) was already true by class invariant.
+		if (! this.isTerminated()) {
+			if (getNbOfBulletsInMagazine() != 0 && getWorld() != null) {
+				Bullet bulletToFire = (Bullet) getMagazine().toArray()[0];
 				try {
-					getWorld().addEntity(bulletToFire);
-				}
-				catch (IllegalArgumentException exc) {
-					//The bullet to fire is placed outside of the boundaries of the world containing this ship. The bullet to fire is
-					//therefore destroyed.
+					bulletToFire.setToFireConfiguration();
+					// Cannot throw IllegalPositionException because this bullet is not contained in a world yet.
+					removeAsLoadedBullet(bulletToFire);
+					// Cannot throw IllegalBulletException, since bulletToFire was loaded in the magazine. 
+					addAsFiredBullet(bulletToFire);
+					// Cannot throw IllegalBulletException, since canHaveAsBullet(bulletToFire) was already true by class invariant.
+					try {
+						getWorld().addEntity(bulletToFire);
+					} catch (IllegalArgumentException exc) {
+						//The bullet to fire is placed outside of the boundaries of the world containing this ship. The bullet to fire is
+						//therefore destroyed.
+						bulletToFire.terminate();
+					} catch (OverlapException exc) {
+						//The bullet to fire overlaps with another entity in the world of this ship. Both the bullet and that entity are destroyed.
+						exc.getFirstEntity().terminate();
+						exc.getSecondEntity().terminate();
+					}
+				} catch (IllegalComponentException exc) {
+					/* An IllegalComponentException can only thrown if the method setToFireConfiguration tried to set a component of the position
+					 * of the bullet to fire to infinity or NaN. This can never be a valid position for a world so the bullet to fire must be
+					 * destroyed (note that a bullet can only be fired by a ship that is contained in a world).
+					 */
 					bulletToFire.terminate();
 				}
-				catch (OverlapException exc) {
-					//The bullet to fire overlaps with another entity in the world of this ship. Both the bullet and that entity are destroyed.
-					exc.getFirstEntity().terminate();
-					exc.getSecondEntity().terminate();
-				}
-			}
-			catch (IllegalComponentException exc) {
-				/* An IllegalComponentException can only thrown if the method setToFireConfiguration tried to set a coordinate of the position
-				 * of the bullet to fire to infinity or NaN. This can never be a valid position for a world so the bullet to fire must be
-				 * destroyed (note that a bullet can only be fired by a ship that is contained in a world).
-				 */
-				bulletToFire.terminate();
-			}
+			} 
 		}
 	}
 	
@@ -793,8 +911,13 @@ public class Ship extends Entity {
 	 * 				or (the bullet has been fired by this ship but does not apparently collide with this ship), 
 	 * 				or (the ship associated to the given bullet is effective but different from this ship).
 	 * 			| @see implementation
+	 * @throws TerminatedException
+	 * 		This ship is terminated
+	 * 		| this.isTerminated()
 	 */
-	public void loadBullet(Bullet bullet) throws IllegalBulletException {
+	public void loadBullet(Bullet bullet) throws IllegalBulletException, TerminatedException {
+		if (this.isTerminated())
+			throw new TerminatedException();
 		if (! canHaveAsBullet(bullet) || (! surrounds(bullet) && ! hasFired(bullet) ) || 
 				(hasFired(bullet) && ! Entity.apparentlyCollide(this, bullet)) ||
 				(bullet.getShip() != null && bullet.getShip() != this))
@@ -819,7 +942,9 @@ public class Ship extends Entity {
 	 * 			| for each bullet in bullets:
 	 * 			|	loadBullet(bullets)
 	 */
-	public void loadBullets(Bullet... bullets) {
+	public void loadBullets(Bullet... bullets) throws TerminatedException {
+		if (isTerminated())
+			throw new TerminatedException();
 		for (Bullet bullet : bullets) {
 			loadBullet(bullet);
 		}

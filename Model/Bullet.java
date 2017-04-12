@@ -111,17 +111,17 @@ public class Bullet extends Entity {
 	}
 	
 	
-	/**
-	 * Check whether this bullet can have the given mass as its mass.
-	 * 
-	 * @return true iff the given mass equals the volume of this bullet times its density.
-	 * 			| @see implementation
-	 * TODO Probably this method will not be needed anymore because only the density will be a basic variable in an entity.
-	 */
-	@Override @Raw
-	public boolean canHaveAsMass(double mass) {
-		return mass == getVolume() * getDensity();
-	}
+//	/**
+//	 * Check whether this bullet can have the given mass as its mass.
+//	 * 
+//	 * @return true iff the given mass equals the volume of this bullet times its density.
+//	 * 			| @see implementation
+//	 * TODO Probably this method will not be needed anymore because only the density will be a basic variable in an entity.
+//	 */
+//	@Override @Raw
+//	public boolean canHaveAsMass(double mass) {
+//		return mass == getVolume() * getDensity();
+//	}
 	
 	/** 
 	 * Check whether this bullet can have the given density as its density
@@ -308,7 +308,7 @@ public class Bullet extends Entity {
 	 * @effect	| if (getNbOfBouces() >= getMaximalNbOfBounces())
 	 * 			|	then terminate()
 	 * @effect	| if (getNbOfBouces() < getMaximalNbOfBounces())
-	 * 			|	then stepNbOfBounces
+	 * 			|	then stepNbOfBounces()
 	 * @effect	| if (getNbOfBouces() < getMaximalNbOfBounces() && collidesWithHorizontalBoundary())
 	 * 			|	then setVelocity(getVelocity().getxComponent(), -getVelocity().getyComponent())
 	 * @effect	| if (getNbOfBouces() < getMaximalNbOfBounces() && collidesWithVerticalBoundary())
@@ -341,7 +341,7 @@ public class Bullet extends Entity {
 	 * 
 	 * @effect	| if (other instanceof Ship && ((Ship)other).hasFired(this))
 	 * 			|	then ((Ship)other).loadBullet(this)
-	 * @effect	| if ((other instanceof Ship && !((Ship)other).hasFired(this)) || other instancof Bullet)
+	 * @effect	| if ((other instanceof Ship && !((Ship)other).hasFired(this)) || other instanceof Bullet)
 	 * 			|	then this.terminate() && other.terminate()
 	 * @throws	TerminatedException
 	 * 			| this.isTerminated() || other.isTerminated()
