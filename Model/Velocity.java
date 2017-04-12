@@ -9,10 +9,6 @@ import be.kuleuven.cs.som.annotate.Value;
  * @author Joris Ceulemans & Pieter Senden
  * @version 2.0
  * 
- * @invar  The xComponent of each velocity must be a valid xComponent for any velocity.
- *       | isValidComponent(getxComponent())
- * @invar  The yComponent of each velocity must be a valid yComponent for any velocity.
- *       | isValidComponent(getyComponent())
  */
 @Value
 public class Velocity extends PhysicalVector {
@@ -33,6 +29,7 @@ public class Velocity extends PhysicalVector {
 	
 	/**
 	 * Calculate the speed associated with this velocity 
+	 * 
 	 * @return The speed associated with this velocity
 	 * 			|  result == Maht.sqrt(getxComponent()^2 + getyComponent()^2)
 	 */
@@ -42,6 +39,7 @@ public class Velocity extends PhysicalVector {
 	
 	/**
 	 * Check whether this velocity is equal to the given object.
+	 * 
 	 * @return True iff other is an instance of the class Velocity, 
 	 * 			and both xComponents are equal and both yComponents are equal. 
 	 * 			| @see implementation

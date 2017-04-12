@@ -521,7 +521,7 @@ public class World {
 	public Set<Set<Entity>> getCollisions() {
 		Set<Set<Entity>> result = new HashSet<>();
 		for (Entity entity: getEntities()) {
-			if (entity.collidesWithBoundary()) {
+			if (entity.apparentlyCollidesWithBoundary()) {
 				Set<Entity> tempSet = new HashSet<>();
 				tempSet.add(entity);
 				result.add(tempSet);
@@ -564,8 +564,7 @@ public class World {
 	/**
 	 * Let this world evolve with the given duration.
 	 */
-	public void evolve(double duration, CollisionListener collisionListener) throws IllegalArgumentException, IllegalMethodCallException,
-																							TerminatedException, OverlapException {
+	public void evolve(double duration, CollisionListener collisionListener) throws IllegalArgumentException, TerminatedException {
 		if (isTerminated())
 			throw new TerminatedException();
 		if (duration < 0)
@@ -604,8 +603,7 @@ public class World {
 	/**
 	 * Resolve the collisions (both between entities as between an entity and the boundary) in this world.
 	 */
-	private void resolveCollisions(CollisionListener collisionListener) throws TerminatedException, NullPointerException,
-																					OverlapException, IllegalCollisionException {
+	private void resolveCollisions(CollisionListener collisionListener) throws TerminatedException, IllegalCollisionException {
 		if (isTerminated())
 			throw new TerminatedException();
 		Set<Set<Entity>> collisionSet = getCollisions();

@@ -88,7 +88,8 @@ abstract class PhysicalVector {
 	
 	/**
 	 * Return this physical an array of length 2, with the xComponent at index 0
-	 *  and the yComponent at index 1. 
+	 *  and the yComponent at index 1.
+	 *  
 	 * @return  an array of length 2, with the xComponent at index 0
 	 *  		and the yComponent at index 1.
 	 * 			| result == new double[] {getxComponent(), getyComponent()}
