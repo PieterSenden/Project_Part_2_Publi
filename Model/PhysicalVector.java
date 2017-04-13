@@ -1,9 +1,7 @@
 package asteroids.model.representation;
 
-import asteroids.model.exceptions.IllegalComponentException;
-import be.kuleuven.cs.som.annotate.Basic;
-import be.kuleuven.cs.som.annotate.Raw;
-import be.kuleuven.cs.som.annotate.Value;
+import asteroids.model.exceptions.*;
+import be.kuleuven.cs.som.annotate.*;
 
 /**
  * A class representing a physical vector.
@@ -96,4 +94,14 @@ abstract class PhysicalVector {
 	public double[] getAsArray() {
 		return new double[] {getxComponent(), getyComponent()};
 	}
+	
+	public double scalarProductWith(PhysicalVector other) throws NullPointerException, NotFiniteException  {
+		double result = getxComponent() * other.getxComponent() + getyComponent() * other.getyComponent();
+		if (!Double.isFinite(result))
+			throw new NotFiniteException();
+		return result;
+	}
+	
+	public abstract PhysicalVector vectorMinus(PhysicalVector other) throws NullPointerException, IllegalComponentException, IllegalArgumentException;
+
 }

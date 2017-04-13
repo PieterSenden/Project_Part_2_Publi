@@ -73,6 +73,13 @@ public class Position extends PhysicalVector {
 				getyComponent() + velocity.getyComponent() * duration);
 	}
 	
+	
+	@Override
+	public Position vectorMinus(PhysicalVector other) throws NullPointerException, IllegalComponentException, IllegalArgumentException {
+		if (!(other instanceof Position))
+				throw new IllegalArgumentException();
+		return new Position(getxComponent() - other.getxComponent(), getyComponent() - other.getyComponent());
+	}
 	/**
 	 * Check whether this position is equal to the given object.
 	 * @return True iff other is an instance of the class Position, 

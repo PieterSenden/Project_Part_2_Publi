@@ -256,12 +256,6 @@ public class World {
 	 * 
 	 * @param position
 	 * 			The position of which the method checks that there is an entity.
-//	 * @return	| (result == null)  || 
-//     *        	| ( (result.getPosition() == position) &&
-//     *        	|   (result.getWorld() == this) )
-//     * @return  | (result != null) ==
-//     *        	|   (for some entity in Entity:
-//     *        	|     (entity.getPosition() == position) && this.hasAsEntity(entity) )
 	 */
 	@Basic @Raw
 	public Entity getEntityAt(Position position) {
@@ -286,9 +280,7 @@ public class World {
 	 * 
 	 * @param entity
 	 * 			The entity to check.
-	 * @return  | result ==
-	 * 			|	(for some ent in getEntities():
-	 * 			|		ent == entity)
+	 * @return  | result == getEntities().contains(entity)
 	 */
 	@Raw
 	public boolean hasAsEntity(Entity entity) {
@@ -345,12 +337,8 @@ public class World {
 	 * @throws OverlapException(entity, other)
 	 * 			| for some other in getEntities:
 	 * 			|	(entity != other) && Entity.overlap(entity, other)
-	 * @throws TerminatedException
-	 * 			| isTerminated()
 	 */
-	public void addEntity(Entity entity) throws IllegalArgumentException, OverlapException, TerminatedException {
-		if (this.isTerminated())
-			throw new TerminatedException();
+	public void addEntity(Entity entity) throws IllegalArgumentException, OverlapException {
 		if (!canHaveAsEntity(entity) || (entity.getWorld() != null) || hasAsEntity(entity))
 			throw new IllegalArgumentException();
 		if (entity != null) {
@@ -522,7 +510,7 @@ public class World {
 	public Set<Set<Entity>> getCollisions() {
 		Set<Set<Entity>> result = new HashSet<>();
 		for (Entity entity: getEntities()) {
-			if (entity.collidesWithBoundary()) {
+			if (entity.apparentlyCollidesWithBoundary()) {
 				Set<Entity> tempSet = new HashSet<>();
 				tempSet.add(entity);
 				result.add(tempSet);
@@ -557,7 +545,12 @@ public class World {
 		if (collisionListener != null && !isTerminated()) {
 			if (entity1.mustShowCollisionWith(entity2)) {
 				Position collisionPosition = Entity.getCollisionPosition(entity1, entity2);
-				collisionListener.objectCollision(entity1, entity2, collisionPosition.getxComponent(), collisionPosition.getyComponent());
+				try {
+					collisionListener.objectCollision(entity1, entity2, collisionPosition.getxComponent(), collisionPosition.getyComponent());
+				} catch (Exception e) {
+					double test = 1;
+					test++;
+				}
 			}
 		}
 	}
@@ -605,26 +598,35 @@ public class World {
 	/**
 	 * Resolve the collisions (both between entities as between an entity and the boundary) in this world.
 	 */
-	private void resolveCollisions(CollisionListener collisionListener) throws TerminatedException, NullPointerException,
-																					OverlapException, IllegalCollisionException {
+	private void resolveCollisions(CollisionListener collisionListener) throws TerminatedException, IllegalCollisionException {
 		if (isTerminated())
 			throw new TerminatedException();
 		Set<Set<Entity>> collisionSet = getCollisions();
+		if (collisionSet.isEmpty())
+			throw new IllegalMethodCallException();
 		for (Set<Entity> collision: collisionSet) {
 			if (collision.size() == 1) {
 				Entity entity = (Entity)collision.toArray()[0];
-				showCollision(collisionListener, entity);
-				entity.bounceOfBoundary();
+				if  (!entity.isTerminated() && entity.apparentlyCollidesWithBoundary()) {
+					//It is possible that entity is terminated in a previous collision (that is handled in this invocation of resolveCollsions),
+					// such that it still belongs to the collisionSet.
+					showCollision(collisionListener, entity);
+					entity.bounceOfBoundary();
+				}
 			}
 			else if (collision.size() == 2) {
 				Object[] collisionArray = collision.toArray();
 				Entity entity1 = (Entity)collisionArray[0];
 				Entity entity2 = (Entity)collisionArray[1];
-				showCollision(collisionListener, entity1, entity2);
-				entity1.resolveCollision(entity2);
+				if (!entity1.isTerminated() && !entity2.isTerminated() && Entity.apparentlyCollide(entity1, entity2)) {
+					//It is possible that entity1 or entity2 is terminated in a previous collision (that is handled in this invocation
+					// of resolveCollsions), such that it still belongs to the collisionSet.
+					showCollision(collisionListener, entity1, entity2);
+					entity1.resolveCollision(entity2);
+				}
 			}
 			else
 				throw new IllegalCollisionException();
 		}
-	}
+}
 }

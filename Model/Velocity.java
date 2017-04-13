@@ -40,6 +40,13 @@ public class Velocity extends PhysicalVector {
 		return Math.hypot(getxComponent(), getyComponent());
 	}
 	
+	@Override
+	public Velocity vectorMinus(PhysicalVector other) throws NullPointerException, IllegalComponentException, IllegalArgumentException {
+		if (!(other instanceof Velocity))
+				throw new IllegalArgumentException();
+		return new Velocity(getxComponent() - other.getxComponent(), getyComponent() - other.getyComponent());
+	}
+	
 	/**
 	 * Check whether this velocity is equal to the given object.
 	 * @return True iff other is an instance of the class Velocity, 

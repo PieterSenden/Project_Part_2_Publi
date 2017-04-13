@@ -6,6 +6,7 @@ import be.kuleuven.cs.som.annotate.*;
 /**
  * A class representing a circular bullet dealing with position, velocity, radius, density, mass and number
  * of bounces. A bullet can also be loaded on a ship and fired by that ship.
+ * 
  * @invar The minimal radius of each bullet must be a valid minimal radius for any bullet.
  *       | isValidMinimalRadius(getMinimalRadius())
  * @invar Each bullet can have its nbOfBounces as nbOfBounces
@@ -25,7 +26,7 @@ import be.kuleuven.cs.som.annotate.*;
 
 public class Bullet extends Entity {
 	/**
-	 * Initialize this new Bullet with given position, velocity, radius, density and mass.
+	 * Initialize this new Bullet with given position, velocity, radius and mass.
 	 * 
 	 * @param xComPos
 	 * 			The xComponent of the position of this new bullet.
@@ -37,16 +38,14 @@ public class Bullet extends Entity {
 	 * 			The yComponent of the velocity of this new bullet.
 	 * @param radius
 	 * 			The radius of this new bullet.
-	 * @param density
-	 * 			The density of this new bullet.
 	 * @param mass
 	 * 			The mass of this new bullet.
-	 * @effect	| super(xComPos, yComPos, xComVel, yComVel, radius, density, mass)
+	 * @effect	| super(xComPos, yComPos, xComVel, yComVel, radius, mass)
 	 */
 	@Raw
-	public Bullet(double xComPos, double yComPos, double xComVel, double yComVel, double radius, double density,
+	public Bullet(double xComPos, double yComPos, double xComVel, double yComVel, double radius,
 			double mass) throws IllegalComponentException, IllegalPositionException, IllegalRadiusException {
-		super(xComPos, yComPos, xComVel, yComVel, radius, density, mass);
+		super(xComPos, yComPos, xComVel, yComVel, radius, mass);
 	}
 	
 	/**
@@ -67,7 +66,7 @@ public class Bullet extends Entity {
 	@Raw
 	public Bullet(double xComPos, double yComPos, double xComVel, double yComVel, double radius) throws IllegalComponentException, 
 																				IllegalPositionException, IllegalRadiusException{
-		this(xComPos, yComPos, xComVel, yComVel, radius, 7.8e12, 10e20);
+		this(xComPos, yComPos, xComVel, yComVel, radius, 10e20);
 		//The value of the mass appears to be set to 10e=20. However, this value is changed to the only possible mass for a bullet
 		//with a given radius in the constructor of Entity.
 	}
@@ -85,7 +84,7 @@ public class Bullet extends Entity {
 		if (isTerminated())
 			throw new TerminatedException();
 		return new Bullet(getPosition().getxComponent(), getPosition().getyComponent(), getVelocity().getxComponent(),
-				getVelocity().getyComponent(), getRadius(), getDensity(), getMass());
+				getVelocity().getyComponent(), getRadius(), getMass());
 	}
 	
 	
@@ -109,19 +108,6 @@ public class Bullet extends Entity {
 			super.terminate();
 		}
 	}
-	
-	
-//	/**
-//	 * Check whether this bullet can have the given mass as its mass.
-//	 * 
-//	 * @return true iff the given mass equals the volume of this bullet times its density.
-//	 * 			| @see implementation
-//	 * TODO Probably this method will not be needed anymore because only the density will be a basic variable in an entity.
-//	 */
-//	@Override @Raw
-//	public boolean canHaveAsMass(double mass) {
-//		return mass == getVolume() * getDensity();
-//	}
 	
 	/** 
 	 * Check whether this bullet can have the given density as its density
@@ -309,28 +295,28 @@ public class Bullet extends Entity {
 	 * 			|	then terminate()
 	 * @effect	| if (getNbOfBouces() < getMaximalNbOfBounces())
 	 * 			|	then stepNbOfBounces()
-	 * @effect	| if (getNbOfBouces() < getMaximalNbOfBounces() && collidesWithHorizontalBoundary())
+	 * @effect	| if (getNbOfBouces() < getMaximalNbOfBounces() && apparentlyCollidesWithHorizontalBoundary())
 	 * 			|	then setVelocity(getVelocity().getxComponent(), -getVelocity().getyComponent())
-	 * @effect	| if (getNbOfBouces() < getMaximalNbOfBounces() && collidesWithVerticalBoundary())
+	 * @effect	| if (getNbOfBouces() < getMaximalNbOfBounces() && apparentlyCollidesWithVerticalBoundary())
 	 * 			|	then setVelocity(-getVelocity().getxComponent(), getVelocity().getyComponent())
 	 * @throws	TerminatedException
 	 * 			| isTerminated()
 	 * @throws	IllegalMethodCallException
-	 * 			| getWorld() == null || !collidesWithBoundary()
+	 * 			| getWorld() == null || !apparentlyCollidesWithBoundary()
 	 */
 	@Override
 	public void bounceOfBoundary() throws TerminatedException, IllegalMethodCallException {
 		if (isTerminated())
 			throw new TerminatedException();
-		if (getWorld() == null || !collidesWithBoundary())
+		if (getWorld() == null || !apparentlyCollidesWithBoundary())
 			throw new IllegalMethodCallException();
 		if (getNbOfBounces() >= getMaximalNbOfBounces())
 			terminate();
 		else {
 			stepNbOfBounces();
-			if (collidesWithHorizontalBoundary())
+			if (apparentlyCollidesWithHorizontalBoundary())
 				setVelocity(getVelocity().getxComponent(), -getVelocity().getyComponent());
-			else if (collidesWithVerticalBoundary())
+			else if (apparentlyCollidesWithVerticalBoundary())
 				setVelocity(-getVelocity().getxComponent(), getVelocity().getyComponent());
 		}
 	}
@@ -476,7 +462,7 @@ public class Bullet extends Entity {
 	 * Set this bullet to the load configuration.
 	 * 
 	 * @post | if (!isTerminated() && (getShip() != null) && getShip().hasLoadedInMagazine(this))
-	 * 		 | 	then new.getPosition().equals(new Position(0, 0)) &&
+	 * 		 | 	then new.getPosition().equals(getShip().getPosition()) &&
 	 * 		 |			new.getVelocity().equals(new Velocity(0, 0)) && (new.getNbOfBounces() == 0)
 	 * @note This method must only be invoked in the method loadBullet() of the class Ship
 	 */
