@@ -68,12 +68,6 @@ public class Position extends PhysicalVector {
 	}
 	
 	
-	@Override
-	public Position vectorMinus(PhysicalVector other) throws NullPointerException, IllegalComponentException, IllegalArgumentException {
-		if (!(other instanceof Position))
-				throw new IllegalArgumentException();
-		return new Position(getxComponent() - other.getxComponent(), getyComponent() - other.getyComponent());
-	}
 	/**
 	 * Return the difference of this position vector with the given other position vector.
 	 * 
