@@ -156,7 +156,7 @@ public class Ship extends Entity {
 	 * 		|	bullet.getPosition().equals(position)
 	 */
 	@Override
-	protected void setPosition(Position position) throws IllegalPositionException, TerminatedException {
+	protected void setPosition(Position position) throws IllegalPositionException {
 		super.setPosition(position);
 		if (this.magazine != null) {
 			// When initializing this ship, it is possible that magazine == null and we still want to invoke this method.
@@ -385,7 +385,7 @@ public class Ship extends Entity {
 	/**
 	 * Variable registering the thruster force of this ship.
 	 */
-	private double thrusterForce = 1.1e23;
+	private double thrusterForce = 1.1e21;
 	
 	
 	/**
@@ -557,7 +557,7 @@ public class Ship extends Entity {
 	}
 	
 	/**
-	 * Check whether if a collision between this entity and the given other entity occurs, it must be shown.
+	 * Check whether, if a collision between this entity and the given other entity occurs, it must be shown.
 	 * This method does not check if this entity and the other entity collide, only whether the collision must be shown if they do.
 	 * 
 	 * @param other

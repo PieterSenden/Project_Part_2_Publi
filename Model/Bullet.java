@@ -94,8 +94,6 @@ public class Bullet extends Entity {
 	 * @effect	| super.terminate()
 	 * @effect	| if (getShip != null)
 	 * 			|	then getShip.removeBullet(this)
-	 * TODO Probably breaking up the association between a world and an entity will be worked out in the method terminate() of the class
-	 * 		Entity. In that case the implementation of terminate() in Bullet needs to be adapted and no additional effect clause is needed.
 	 */
 	@Override
 	public void terminate() {

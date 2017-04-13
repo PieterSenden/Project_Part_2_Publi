@@ -196,8 +196,7 @@ public abstract class Entity {
 	 * 			| @see implementation
 	 */
 	@Raw @Model
-	protected void setPosition(double xComponent, double yComponent) throws IllegalComponentException, IllegalPositionException,
-																								TerminatedException {
+	protected void setPosition(double xComponent, double yComponent) throws IllegalComponentException, IllegalPositionException {
 		setPosition(new Position(xComponent, yComponent));
 	}
 	
@@ -213,7 +212,7 @@ public abstract class Entity {
 	 * 		 | ! canHaveAsPosition(position)
 	 */
 	@Raw @Model
-	protected void setPosition(Position position) throws IllegalPositionException, TerminatedException {
+	protected void setPosition(Position position) throws IllegalPositionException {
 		if (!canHaveAsPosition(position))
 			throw new IllegalPositionException();
 		this.position = position;
@@ -1011,12 +1010,15 @@ public abstract class Entity {
 	 * @post The new world of this entity is equal to the given world.
 	 * 			| new.getWorld() == world
 	 * @throws IllegalMethodCallException
+	 * 			(This entity cannot have the given world as its world) or
 	 * 			(The given world is effective but does not yet contain this entity) or
 	 * 			(the given world is effective but is terminated) or 
 	 * 			(the given world is not effective and the world of this entity is effective and still contains this entity).
 	 * 			| (world != null && !world.hasAsEntity(this)) ||
 	 * 			|	(world == null && getWorld() != null && getWorld().hasAsEntity(this))
-	 * 
+	 * @throws TerminatedException
+	 * 			This entity is terminated.
+	 * 			| isTerminated()
 	 */
 	@Model
 	void setWorld(World world) throws IllegalMethodCallException, TerminatedException {

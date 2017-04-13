@@ -57,7 +57,7 @@ public class Position extends PhysicalVector {
 	 * 			with the given velocity during the given duration  
 	 * 			| @see implementation 
 	 * @throws IllegalArgumentException
-	 * 			The given duration is strictly less than 0.
+	 * 			The given velocity is not effective or given duration is strictly less than 0.
 	 * 			| velocity == null || duration < 0
 	 */
 	public Position move(Velocity velocity, double duration) throws IllegalComponentException, IllegalArgumentException {
