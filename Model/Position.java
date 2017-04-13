@@ -9,10 +9,6 @@ import be.kuleuven.cs.som.annotate.Value;
  * @author Joris Ceulemans & Pieter Senden
  * @version 2.0
  * 
- * @invar  The xComponent of each position must be a valid xComponent for any position.
- *       | isValidComponent(getxComponent())
- * @invar  The yComponent of each position must be a valid yComponent for any position.
- *       | isValidComponent(getyComponent())
  */
 @Value
 public class Position extends PhysicalVector {
@@ -26,16 +22,14 @@ public class Position extends PhysicalVector {
 	 *         The yComponent for this new position.
 	 * @effect This new position is initialized as a physical vector with the given xComponent and yComponent.
 	 * 		 | @see implementation
-	 * @throws IllegalComponentException
-	 * 		   One of the given components is not valid.
-	 * 		 | ! isValidComponent(xComponent) || ! isValidComponent(yComponent)
 	 */
 	public Position(double xComponent, double yComponent) throws IllegalComponentException {
 		super(xComponent, yComponent);
 	}
 	
 	/**
-	 * Calculates the distance between two positions
+	 * Calculates the distance between two positions.
+	 * 
 	 * @param pos1
 	 * 			The first position
 	 * @param pos2
@@ -64,17 +58,50 @@ public class Position extends PhysicalVector {
 	 * 			| @see implementation 
 	 * @throws IllegalArgumentException
 	 * 			The given duration is strictly less than 0.
-	 * 			| duration < 0
+	 * 			| velocity == null || duration < 0
 	 */
 	public Position move(Velocity velocity, double duration) throws IllegalComponentException, IllegalArgumentException {
-		if (duration < 0)
+		if (velocity == null || duration < 0)
 			throw new IllegalArgumentException();
 		return new Position(getxComponent() + velocity.getxComponent() * duration,
 				getyComponent() + velocity.getyComponent() * duration);
 	}
 	
+	
+	@Override
+	public Position vectorMinus(PhysicalVector other) throws NullPointerException, IllegalComponentException, IllegalArgumentException {
+		if (!(other instanceof Position))
+				throw new IllegalArgumentException();
+		return new Position(getxComponent() - other.getxComponent(), getyComponent() - other.getyComponent());
+	}
+	/**
+	 * Return the difference of this position vector with the given other position vector.
+	 * 
+	 * @param other
+	 * 			The second position vector (after minus sign).
+	 * @return The difference of this position vector an the given other position vector.
+	 * 			| result == new Position(getxComponent() - other.getxComponent(), getyComponent() - other.getyComponent())
+	 * @throws NullPointerException
+	 * 			The given other physical vector is not effective.
+	 * 			| other == null
+	 * @throws IllegalComponentException
+	 * 			getxComponent() - other.getxComponent() or getyComponent() - other.getyComponent() is not a valid component for any position.
+	 * 			| !isValidComponent(getxComponent() - other.getxComponent()) || !isValidComponent(getyComponent() - other.getyComponent())
+	 * @throws IllegalArgumentException
+	 * 			The given other physical vector is not a position.
+	 * 			| !(other instanceof Position)
+	 */
+	@Override
+	public Position vectorMinus(PhysicalVector other) throws NullPointerException, IllegalComponentException,
+																					IllegalArgumentException {
+		if (! (other instanceof Position))
+			throw new IllegalArgumentException();
+		return new Position(getxComponent() - other.getxComponent(), getyComponent() - other.getyComponent());
+	}
+	
 	/**
 	 * Check whether this position is equal to the given object.
+	 * 
 	 * @return True iff other is an instance of the class Position, 
 	 * 			and both xComponents are equal and both yComponents are equal.
 	 * 			| @see implementation
@@ -101,5 +128,4 @@ public class Position extends PhysicalVector {
 		result = prime * result + (int) (temp ^ (temp >>> 32));
 		return result;
 	}
-	
 }

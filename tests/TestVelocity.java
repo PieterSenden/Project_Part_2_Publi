@@ -1,21 +1,30 @@
 package asteroids.tests;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
-import asteroids.model.Velocity;
+import asteroids.model.exceptions.*;
+import asteroids.model.representation.*;
 
 public class TestVelocity {
-	Velocity myVelocity;
-		
+	private static final double EPSILON = 0.0001;
+	
+	private static Velocity myVelocity, velocity_00, otherVelocity_00;
+	private static Position position_00;
+	
+	@BeforeClass
+	public static void setUpBeforeClass() throws Exception {
+		velocity_00 = new Velocity(0, 0);
+		otherVelocity_00 = new Velocity(0, 0);
+		position_00 = new Position(0, 0);
+	}
+	
 	@Before
 	public void setUp() throws Exception {
-		myVelocity = new Velocity(10, 10);
+		myVelocity = new Velocity(6, 8);
 	}
 
 	@Test
@@ -25,74 +34,28 @@ public class TestVelocity {
 		assertEquals(myVelocity.getyComponent(), 20, 0.01);
 	}
 
-	@Test
+	@Test(expected=IllegalComponentException.class)
 	public void constructor_NonRegularCase() {
 		myVelocity = new Velocity(Double.POSITIVE_INFINITY, 10);
-		assertEquals(myVelocity.getxComponent(), 0, 0.01);
-		assertEquals(myVelocity.getyComponent(), 10, 0.01);
 	}
 	
 	@Test
-	public void isValidComponent_TrueCase() {
-		assertTrue(Velocity.isValidComponent(10));
-	}
-
-	@Test
-	public void isValidComponent_NaNCase() {
-		assertFalse(Velocity.isValidComponent(Double.NaN));
+	public void getSpeed() {
+		assertEquals(myVelocity.getSpeed(), 10, EPSILON);
 	}
 	
 	@Test
-	public void isValidComponent_InfiniteCase() {
-		assertFalse(Velocity.isValidComponent(Double.POSITIVE_INFINITY));
+	public void equals_EqualCase() {
+		assertTrue(velocity_00.equals(otherVelocity_00));
 	}
 	
 	@Test
-	public void setxComponent_RegularCase() {
-		myVelocity.setxComponent(5);
-		assertEquals(myVelocity.getxComponent(), 5, 0.01);
-		assertEquals(myVelocity.getyComponent(), 10, 0.01);
+	public void equals_NotSameType() {
+		assertFalse(velocity_00.equals(position_00));
 	}
 	
 	@Test
-	public void setxComponent_NonRegularCase() {
-		myVelocity.setxComponent(Double.NaN);
-		assertEquals(myVelocity.getxComponent(), 10, 0.01);
-		assertEquals(myVelocity.getyComponent(), 10, 0.01);
-	}
-
-	@Test
-	public void setyComponent_RegularCase() {
-		myVelocity.setyComponent(5);
-		assertEquals(myVelocity.getyComponent(), 5, 0.01);
-		assertEquals(myVelocity.getxComponent(), 10, 0.01);
-	}
-
-	@Test
-	public void setyComponent_NonRegularCase() {
-		myVelocity.setyComponent(Double.NaN);
-		assertEquals(myVelocity.getxComponent(), 10, 0.01);
-		assertEquals(myVelocity.getyComponent(), 10, 0.01);
-	}
-	
-	@Test
-	public void setVelocity_RegularCase() {
-		myVelocity.setVelocity(5, 5);
-		assertEquals(myVelocity.getxComponent(), 5, 0.01);
-		assertEquals(myVelocity.getyComponent(), 5, 0.01);
-	}
-
-	@Test
-	public void clone_RegularCase() {
-		Velocity yourVelocity = myVelocity.clone();
-		assertNotEquals(yourVelocity, myVelocity);
-		assertEquals(myVelocity.getxComponent(), yourVelocity.getxComponent(), 0.01);
-		assertEquals(myVelocity.getyComponent(), yourVelocity.getyComponent(), 0.01);
-	}
-	
-	@Test
-	public void getAsArrayTest(){
-		assertEquals(myVelocity.getAsArray()[0], 10, 0.01);
-		assertEquals(myVelocity.getAsArray()[1], 10, 0.01);
+	public void equals_NotEqualPosition() {
+		assertFalse(velocity_00.equals(myVelocity));
 	}
 }

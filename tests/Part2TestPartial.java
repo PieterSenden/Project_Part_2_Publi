@@ -6,9 +6,7 @@ import static org.junit.Assert.assertTrue;
 import org.junit.Before;
 import org.junit.Test;
 
-import asteroids.model.Bullet;
-import asteroids.model.Ship;
-import asteroids.model.World;
+import asteroids.model.representation.*;
 import asteroids.facade.Facade;
 import asteroids.part2.facade.IFacade;
 import asteroids.util.ModelException;
@@ -55,5 +53,5 @@ public class Part2TestPartial {
 		assertEquals(-990, facade.getShipVelocity(ship)[0], EPSILON);
 		assertEquals(0, facade.getShipVelocity(ship)[1], EPSILON);
 	}
-
+	
 }
