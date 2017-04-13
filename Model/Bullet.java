@@ -235,6 +235,7 @@ public class Bullet extends Entity {
 	 * 
 	 * @effect	| setNbOfBouces(getNbOfBounces() + 1)
 	 */
+	@Model
 	private void stepNbOfBounces() throws TerminatedException, IllegalArgumentException {
 		setNbOfBounces(getNbOfBounces() + 1);
 	}
