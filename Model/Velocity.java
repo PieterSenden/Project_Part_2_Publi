@@ -37,12 +37,6 @@ public class Velocity extends PhysicalVector {
 		return Math.hypot(getxComponent(), getyComponent());
 	}
 	
-	@Override
-	public Velocity vectorMinus(PhysicalVector other) throws NullPointerException, IllegalComponentException, IllegalArgumentException {
-		if (!(other instanceof Velocity))
-				throw new IllegalArgumentException();
-		return new Velocity(getxComponent() - other.getxComponent(), getyComponent() - other.getyComponent());
-	}
 	
 	/**
 	 * Return the difference of this velocity vector with the given other velocity vector.
