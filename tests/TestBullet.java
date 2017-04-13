@@ -7,6 +7,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import asteroids.model.representation.Bullet;
+import asteroids.model.representation.Entity;
 import asteroids.model.representation.Velocity;
 
 public class TestBullet {
@@ -44,4 +45,5 @@ public class TestBullet {
 		Velocity vel = new Velocity(bullet_originZeroVelocity.getSpeedLimit()/2, 0);
 		assertTrue(bullet_originZeroVelocity.canHaveAsVelocity(vel));
 	}
+	
 }
