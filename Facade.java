@@ -582,6 +582,9 @@ public class Facade implements IFacade {
 		try {
 			return Entity.getCollisionPosition((Entity)entity1, (Entity)entity2).getAsArray();
 		}
+		catch (NullPointerException exc) {
+			return null;
+		}
 		catch (RuntimeException exc) {
 			throw new ModelException(exc);
 		}
@@ -629,7 +632,7 @@ public class Facade implements IFacade {
 	 */
 	public void evolve(World world, double dt, CollisionListener collisionListener) throws ModelException {
 		try {
-			world.evolve(dt);
+			world.evolve(dt, collisionListener);
 		}
 		catch (RuntimeException exc) {
 			throw new ModelException(exc);
