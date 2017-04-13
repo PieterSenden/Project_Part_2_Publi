@@ -545,12 +545,7 @@ public class World {
 		if (collisionListener != null && !isTerminated()) {
 			if (entity1.mustShowCollisionWith(entity2)) {
 				Position collisionPosition = Entity.getCollisionPosition(entity1, entity2);
-				try {
-					collisionListener.objectCollision(entity1, entity2, collisionPosition.getxComponent(), collisionPosition.getyComponent());
-				} catch (Exception e) {
-					double test = 1;
-					test++;
-				}
+				collisionListener.objectCollision(entity1, entity2, collisionPosition.getxComponent(), collisionPosition.getyComponent());
 			}
 		}
 	}
@@ -558,8 +553,7 @@ public class World {
 	/**
 	 * Let this world evolve with the given duration.
 	 */
-	public void evolve(double duration, CollisionListener collisionListener) throws IllegalArgumentException, IllegalMethodCallException,
-																							TerminatedException, OverlapException {
+	public void evolve(double duration, CollisionListener collisionListener) throws IllegalArgumentException, TerminatedException {
 		if (isTerminated())
 			throw new TerminatedException();
 		if (duration < 0)

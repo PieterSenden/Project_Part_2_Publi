@@ -159,7 +159,7 @@ public class Ship extends Entity {
 	protected void setPosition(Position position) throws IllegalPositionException, TerminatedException {
 		super.setPosition(position);
 		if (this.magazine != null) {
-			// When initializing this ship, it is possible that magazine is null and we still want to invoke this method.
+			// When initializing this ship, it is possible that magazine == null and we still want to invoke this method.
 			for (Bullet bullet: getMagazine()) {
 				bullet.setPosition(position);
 			}
@@ -385,7 +385,7 @@ public class Ship extends Entity {
 	/**
 	 * Variable registering the thruster force of this ship.
 	 */
-	private double thrusterForce = 1.1e21;
+	private double thrusterForce = 1.1e23;
 	
 	
 	/**
@@ -495,7 +495,7 @@ public class Ship extends Entity {
 	 * @throws IllegalMethodCallException
 	 * 			Either this entity or the other entity is not associated to a world, this entity and the other entity are not associated to the same world or
 	 * 			this entity and the other entity do not apparently collide.
-	 * 			| (getWorld() == null) || (getWorld() != other.getWorld()) || !Entity.apparentlyCollide(this, other))
+	 * 			| (getWorld() == null) || (getWorld() != other.getWorld()) || !Entity.apparentlyCollide(this, other)
 	 * @throws TerminatedException
 	 * 			One of the entities is terminated
 	 * 			| this.isTerminated() || other.isTerminated()

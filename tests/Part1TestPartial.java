@@ -6,8 +6,8 @@ import static org.junit.Assert.assertNotNull;
 import org.junit.Before;
 import org.junit.Test;
 
-import asteroids.model.Ship;
-import asteroids.facade.Facade;
+import asteroids.model.representation.Ship;
+import asteroids.facade.FacadePart1;
 import asteroids.part1.facade.IFacade;
 import asteroids.util.ModelException;
 
@@ -19,7 +19,7 @@ public class Part1TestPartial {
 
 	@Before
 	public void setUp() {
-		facade = new Facade();
+		facade = new FacadePart1();
 	}
 
 	@Test
