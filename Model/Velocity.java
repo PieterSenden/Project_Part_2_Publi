@@ -38,6 +38,31 @@ public class Velocity extends PhysicalVector {
 	}
 	
 	/**
+	 * Return the difference of this velocity vector with the given other velocity vector.
+	 * 
+	 * @param other
+	 * 			The second velocity vector (after minus sign).
+	 * @return The difference of this velocity vector an the given other velocity vector.
+	 * 			| result == new Velocity(getxComponent() - other.getxComponent(), getyComponent() - other.getyComponent())
+	 * @throws NullPointerException
+	 * 			The given other physical vector is not effective.
+	 * 			| other == null
+	 * @throws IllegalComponentException
+	 * 			getxComponent() - other.getxComponent() or getyComponent() - other.getyComponent() is not a valid component for any velocity.
+	 * 			| !isValidComponent(getxComponent() - other.getxComponent()) || !isValidComponent(getyComponent() - other.getyComponent())
+	 * @throws IllegalArgumentException
+	 * 			The given other physical vector is not a velocity.
+	 * 			| !(other instanceof Velocity)
+	 */
+	@Override
+	public Velocity vectorMinus(PhysicalVector other) throws NullPointerException, IllegalComponentException,
+																					IllegalArgumentException {
+		if (! (other instanceof Velocity))
+			throw new IllegalArgumentException();
+		return new Velocity(getxComponent() - other.getxComponent(), getyComponent() - other.getyComponent());
+	}
+	
+	/**
 	 * Check whether this velocity is equal to the given object.
 	 * 
 	 * @return True iff other is an instance of the class Velocity, 

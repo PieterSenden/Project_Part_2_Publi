@@ -1,6 +1,7 @@
 package asteroids.model.representation;
 
 import asteroids.model.exceptions.IllegalComponentException;
+import asteroids.model.exceptions.NotFiniteException;
 import be.kuleuven.cs.som.annotate.Basic;
 import be.kuleuven.cs.som.annotate.Raw;
 import be.kuleuven.cs.som.annotate.Value;
@@ -97,4 +98,40 @@ abstract class PhysicalVector {
 	public double[] getAsArray() {
 		return new double[] {getxComponent(), getyComponent()};
 	}
+	
+	/**
+	 * Calculate the Euclidean scalar product of two physical vectors.
+	 * 
+	 * @param other
+	 * 			The other physical vector involved in the scalar product.
+	 * @return	The scalar product of this physical vector and the given other physical vector.
+	 * 			| result == getxComponent() * other.getxComponent() + getyComponent() * other.getyComponent()
+	 * @throws NullPointerException
+	 * 			The given other physical vector is not effective.
+	 * 			| other == null
+	 * @throws NotFiniteException
+	 * 			The computation of the scalar product results in an infinite number or Nan.
+	 * 			| !Double.isFinite(getxComponent() * other.getxComponent() + getyComponent() * other.getyComponent())
+	 */
+	public double scalarProductWith(PhysicalVector other) throws NullPointerException, NotFiniteException {
+		double result = (getxComponent() * other.getxComponent() + getyComponent() * other.getyComponent());
+		if (!Double.isFinite(result))
+			throw new NotFiniteException();
+		return result;
+	}
+	
+	/**
+	 * Return the difference of this physical vector with the given other physical vector.
+	 * 
+	 * @param other
+	 * 			The second physical vector (after minus sign).
+	 * @throws NullPointerException
+	 * 			The given other physical vector is not effective.
+	 * 			| other == null
+	 * @throws IllegalArgumentException
+	 * 			The given other physical vector does not have the same dynamic type as this physical vector.
+	 * 			| this.getClass() != other.getClass()
+	 */
+	public abstract PhysicalVector vectorMinus(PhysicalVector other) throws NullPointerException, IllegalComponentException,
+																						IllegalArgumentException;
 }

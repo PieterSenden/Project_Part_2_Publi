@@ -68,6 +68,31 @@ public class Position extends PhysicalVector {
 	}
 	
 	/**
+	 * Return the difference of this position vector with the given other position vector.
+	 * 
+	 * @param other
+	 * 			The second position vector (after minus sign).
+	 * @return The difference of this position vector an the given other position vector.
+	 * 			| result == new Position(getxComponent() - other.getxComponent(), getyComponent() - other.getyComponent())
+	 * @throws NullPointerException
+	 * 			The given other physical vector is not effective.
+	 * 			| other == null
+	 * @throws IllegalComponentException
+	 * 			getxComponent() - other.getxComponent() or getyComponent() - other.getyComponent() is not a valid component for any position.
+	 * 			| !isValidComponent(getxComponent() - other.getxComponent()) || !isValidComponent(getyComponent() - other.getyComponent())
+	 * @throws IllegalArgumentException
+	 * 			The given other physical vector is not a position.
+	 * 			| !(other instanceof Position)
+	 */
+	@Override
+	public Position vectorMinus(PhysicalVector other) throws NullPointerException, IllegalComponentException,
+																					IllegalArgumentException {
+		if (! (other instanceof Position))
+			throw new IllegalArgumentException();
+		return new Position(getxComponent() - other.getxComponent(), getyComponent() - other.getyComponent());
+	}
+	
+	/**
 	 * Check whether this position is equal to the given object.
 	 * 
 	 * @return True iff other is an instance of the class Position, 
@@ -96,5 +121,4 @@ public class Position extends PhysicalVector {
 		result = prime * result + (int) (temp ^ (temp >>> 32));
 		return result;
 	}
-	
 }
