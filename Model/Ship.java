@@ -155,7 +155,7 @@ public class Ship extends Entity {
 	 * 		|	bullet.getPosition().equals(position)
 	 */
 	@Override
-	protected void setPosition(Position position) throws IllegalComponentException, IllegalPositionException, TerminatedException {
+	protected void setPosition(Position position) throws IllegalPositionException, TerminatedException {
 		super.setPosition(position);
 		if (this.magazine != null) {
 			//When initializing this ship, it is possible that magazine == null and we still want to invoke this method.
@@ -349,7 +349,7 @@ public class Ship extends Entity {
 	 */
 	public double getAcceleration() {
 		if (hasThrusterActivated())
-			return getThrusterForce() / getMass();
+			return getThrusterForce() / getTotalMass();
 		else 
 			return 0;
 	}
@@ -383,7 +383,7 @@ public class Ship extends Entity {
 	/**
 	 * Variable registering the thruster force of this ship.
 	 */
-	private double thrusterForce = 1.1e21;
+	private double thrusterForce = 1.1e23;
 	
 	
 	/**
@@ -607,7 +607,7 @@ public class Ship extends Entity {
 	 * 		| this.isTerminated()
 	 */
 	@Raw
-	private void addAsLoadedBullet(@Raw Bullet bullet) throws IllegalBulletException, TerminatedException {
+	private void addAsLoadedBullet(Bullet bullet) throws IllegalBulletException, TerminatedException {
 		if (this.isTerminated())
 			throw new TerminatedException();
 		if (! canHaveAsBullet(bullet))
@@ -664,7 +664,7 @@ public class Ship extends Entity {
 	 * 		| this.isTerminated()
 	 */
 	@Raw
-	private void addAsFiredBullet(@Raw Bullet bullet) throws IllegalBulletException, TerminatedException {
+	private void addAsFiredBullet(Bullet bullet) throws IllegalBulletException, TerminatedException {
 		if (this.isTerminated())
 			throw new TerminatedException();
 		if (! canHaveAsBullet(bullet))
@@ -898,7 +898,7 @@ public class Ship extends Entity {
 	 * 		| new.hasLoadedInMagazine(bullet) && ! new.hasFired(bullet)
 	 * @throws IllegalBulletException
 	 * 			This ship cannot have the given bullet as bullet,
-	 * 				or (the given bullet does not lie fully within the bounds of this ship and this ship has not fired the given bullet),
+	 * 				or (this ship cannot fully surround the given bullet)
 	 * 				or (the bullet has been fired by this ship but does not apparently collide with this ship), 
 	 * 				or (the ship associated to the given bullet is effective but different from this ship).
 	 * 			| @see implementation
@@ -909,8 +909,7 @@ public class Ship extends Entity {
 	public void loadBullet(Bullet bullet) throws IllegalBulletException, TerminatedException {
 		if (this.isTerminated())
 			throw new TerminatedException();
-		if (! canHaveAsBullet(bullet) || (! surrounds(bullet) && ! hasFired(bullet) ) || 
-				(hasFired(bullet) && ! Entity.apparentlyCollide(this, bullet)) ||
+		if (! canHaveAsBullet(bullet) || !canSurround(bullet) || (hasFired(bullet) && ! Entity.apparentlyCollide(this, bullet)) ||
 				(bullet.getShip() != null && bullet.getShip() != this))
 			throw new IllegalBulletException();
 		if (hasFired(bullet))

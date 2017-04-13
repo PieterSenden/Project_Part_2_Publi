@@ -400,7 +400,6 @@ public class Bullet extends Entity {
 	 * 		The ship to check.
 	 * @return 
 	 * 			| result == ((ship == null) || ship.canHaveAsBullet(this))
-	 * TODO Check that ship is not terminated (in ship.canHaveAsBullet(this)) 
 	 */
 	@Raw
 	public boolean canHaveAsShip(Ship ship) {

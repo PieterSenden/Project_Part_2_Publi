@@ -197,7 +197,8 @@ public abstract class Entity {
 	 * 			| @see implementation
 	 */
 	@Raw @Model
-	protected void setPosition(double xComponent, double yComponent) throws IllegalComponentException, IllegalPositionException, TerminatedException {
+	protected void setPosition(double xComponent, double yComponent) throws IllegalComponentException, IllegalPositionException,
+																								TerminatedException {
 		setPosition(new Position(xComponent, yComponent));
 	}
 	
@@ -467,7 +468,7 @@ public abstract class Entity {
 	 * 			One of the entities is not effective
 	 * 			| (entity1 == null) || (entity2 == null)
 	 */
-	public static double getDistanceBetweenCentres(Entity entity1, Entity entity2) throws NullPointerException, TerminatedException {
+	public static double getDistanceBetweenCentres(Entity entity1, Entity entity2) throws NullPointerException {
 		return Position.getDistanceBetween(entity1.getPosition(), entity2.getPosition());
 	}
 	
@@ -489,7 +490,7 @@ public abstract class Entity {
 	 * 			One of the entities is not effective
 	 * 			| (entity1 == null) || (entity2 == null)
 	 */
-	public static double getDistanceBetween(Entity entity1, Entity entity2) throws NullPointerException, TerminatedException{
+	public static double getDistanceBetween(Entity entity1, Entity entity2) throws NullPointerException {
 		if ((entity1 != null) && (entity1 == entity2))
 			return 0;
 		return getDistanceBetweenCentres(entity1, entity2) - getSumOfRadii(entity1, entity2);
@@ -525,26 +526,38 @@ public abstract class Entity {
 		return (Entity.getDistanceBetween(entity1, entity2) <= (ACCURACY_FACTOR - 1) * getSumOfRadii(entity1, entity2));
 	}
 	
+//	/**
+//	 * Check whether the given entity lies fully within the bounds of this entity.
+//	 * 
+//	 * @param other
+//	 * 			The entity to check.
+//	 * @return True iff minimal distance between the centre of the given entity and a point on the boundary of this entity
+//	 * 			is greater than or equal to the radius of the given entity times the ACCURACY_FACTOR.
+//	 * 		| result == (min{ pos in Position | Position.getDistanceBetween(pos, this.getPosition()) == this.getRadius()
+//	 * 		|					: Position.getDistanceBetween(pos, other.getPosition())}) >= other.getRadius() * ACCURACY_FACTOR)
+//	 * @throws NullPointerException
+//	 * 			The given entity is not effective
+//	 * 		| other == null
+//	 * @throws TerminatedException
+//	 * 			One of the entities is terminated
+//	 * 			| (entity1.isTerminated() || entity2.isTerminated())
+//	 */
+//	public boolean surrounds(Entity other) throws NullPointerException, TerminatedException {
+//		if (this.isTerminated() || other.isTerminated())
+//			throw new TerminatedException();
+//		return (this.getRadius() - getDistanceBetweenCentres(this, other) ) >= other.getRadius() * ACCURACY_FACTOR;
+//	}
+	
 	/**
-	 * Check whether the given entity lies fully within the bounds of this entity.
+	 * Check whether this entity can fully surround the given entity.
 	 * 
-	 * @param other
-	 * 			The entity to check.
-	 * @return True iff minimal distance between the centre of the given entity and a point on the boundary of this entity
-	 * 			is greater than or equal to the radius of the given entity times the ACCURACY_FACTOR.
-	 * 		| result == (min{ pos in Position | Position.getDistanceBetween(pos, this.getPosition()) == this.getRadius()
-	 * 		|					: Position.getDistanceBetween(pos, other.getPosition())}) >= other.getRadius() * ACCURACY_FACTOR)
-	 * @throws NullPointerException
-	 * 			The given entity is not effective
-	 * 		| other == null
-	 * @throws TerminatedException
-	 * 			One of the entities is terminated
-	 * 			| (entity1.isTerminated() || entity2.isTerminated())
+	 * @return	True iff the radius of this entity is greater than or equal to the radius of the given entity.
+	 * 			| result == (getRadius() >= other.getRadius())
 	 */
-	public boolean surrounds(Entity other) throws NullPointerException, TerminatedException {
+	public boolean canSurround(Entity other) throws NullPointerException, TerminatedException {
 		if (this.isTerminated() || other.isTerminated())
 			throw new TerminatedException();
-		return (this.getRadius() - getDistanceBetweenCentres(this, other) ) >= other.getRadius() * ACCURACY_FACTOR;
+		return (getRadius() >= other.getRadius());
 	}
 	
 	
@@ -568,6 +581,7 @@ public abstract class Entity {
 	 * @throws TerminatedException
 	 * 			One of the entities is terminated
 	 * 			| (entity1.isTerminated() || entity2.isTerminated())
+	 * TODO
 	 */
 	public static boolean apparentlyCollide(Entity entity1, Entity entity2) throws TerminatedException {
 		if (entity1 == null || entity2 == null)
@@ -577,8 +591,11 @@ public abstract class Entity {
 		if (entity1.getWorld() == null || entity2.getWorld() == null ||
 				entity1.getWorld() != entity2.getWorld())
 			return false;
-		return (ACCURACY_FACTOR * getSumOfRadii(entity1, entity2) <= getDistanceBetweenCentres(entity1, entity2)) &&
+		boolean areCloseToEachOther = (ACCURACY_FACTOR * getSumOfRadii(entity1, entity2) <= getDistanceBetweenCentres(entity1, entity2)) &&
 				(getDistanceBetweenCentres(entity1, entity2) <= (2 - ACCURACY_FACTOR) * getSumOfRadii(entity1, entity2));
+		boolean movingTowardsEachOther = (entity1.getVelocity().vectorMinus(entity2.getVelocity())).scalarProductWith(
+											entity1.getPosition().vectorMinus(entity2.getPosition())) < 0;
+		return areCloseToEachOther && movingTowardsEachOther;
 	}
 	
 	/**
@@ -739,7 +756,7 @@ public abstract class Entity {
 		double timeToCollision = getTimeToCollision(entity1, entity2);
 		if (timeToCollision == Double.POSITIVE_INFINITY && !apparentlyCollide(entity1, entity2))
 			//Due to rounding issues, it is possible that two entities already apparently collide, but the time to their collision is
-			//calculated to be POSITIVE_INFINITY instead of zero.
+			// calculated to be POSITIVE_INFINITY instead of zero.
 			return null;
 		
 		Position position1, position2;
@@ -778,8 +795,9 @@ public abstract class Entity {
 			throw new TerminatedException();
 		if (getWorld() == null)
 			return false;
-		return (getPosition().getyComponent() <= getRadius() * (2 - ACCURACY_FACTOR))
-				|| (getWorld().getHeight() - getPosition().getyComponent() <= getRadius() * (2 - ACCURACY_FACTOR));
+		return ( (getPosition().getyComponent() <= getRadius() * (2 - ACCURACY_FACTOR)) && getVelocity().getyComponent() < 0)
+				|| (getWorld().getHeight() - getPosition().getyComponent() <= getRadius() * (2 - ACCURACY_FACTOR) &&
+																								getVelocity().getyComponent() > 0);
 	}
 	
 	/**
@@ -798,8 +816,9 @@ public abstract class Entity {
 			throw new TerminatedException();
 		if (getWorld() == null)
 			return false;
-		return (getPosition().getxComponent() <= getRadius() * (2 - ACCURACY_FACTOR))
-				|| (getWorld().getWidth() - getPosition().getxComponent() <= getRadius() * (2 - ACCURACY_FACTOR));
+		return (getPosition().getxComponent() <= getRadius() * (2 - ACCURACY_FACTOR) && getVelocity().getxComponent() < 0)
+				|| (getWorld().getWidth() - getPosition().getxComponent() <= getRadius() * (2 - ACCURACY_FACTOR)
+																&& getVelocity().getxComponent() > 0);
 	}
 	
 	/**

@@ -255,12 +255,6 @@ public class World {
 	 * 
 	 * @param position
 	 * 			The position of which the method checks that there is an entity.
-//	 * @return	| (result == null)  || 
-//     *        	| ( (result.getPosition() == position) &&
-//     *        	|   (result.getWorld() == this) )
-//     * @return  | (result != null) ==
-//     *        	|   (for some entity in Entity:
-//     *        	|     (entity.getPosition() == position) && this.hasAsEntity(entity) )
 	 */
 	@Basic @Raw
 	public Entity getEntityAt(Position position) {
@@ -285,9 +279,7 @@ public class World {
 	 * 
 	 * @param entity
 	 * 			The entity to check.
-	 * @return  | result ==
-	 * 			|	(for some ent in getEntities():
-	 * 			|		ent == entity)
+	 * @return  | result == getEntities().contains(entity)
 	 */
 	@Raw
 	public boolean hasAsEntity(Entity entity) {
@@ -556,7 +548,13 @@ public class World {
 		if (collisionListener != null && !isTerminated()) {
 			if (entity1.mustShowCollisionWith(entity2)) {
 				Position collisionPosition = Entity.getCollisionPosition(entity1, entity2);
+				try {
 				collisionListener.objectCollision(entity1, entity2, collisionPosition.getxComponent(), collisionPosition.getyComponent());
+				}
+				catch (NullPointerException exc) {
+					int a = 1;
+					System.out.println(a);
+				}
 			}
 		}
 	}
@@ -612,7 +610,7 @@ public class World {
 		for (Set<Entity> collision: collisionSet) {
 			if (collision.size() == 1) {
 				Entity entity = (Entity)collision.toArray()[0];
-				if  (!entity.isTerminated()) {
+				if  (!entity.isTerminated() && entity.apparentlyCollidesWithBoundary()) {
 					//It is possible that entity is terminated in a previous collision (that is handled in this invocation of resolveCollsions),
 					// such that it still belongs to the collisionSet.
 					showCollision(collisionListener, entity);
@@ -623,7 +621,7 @@ public class World {
 				Object[] collisionArray = collision.toArray();
 				Entity entity1 = (Entity)collisionArray[0];
 				Entity entity2 = (Entity)collisionArray[1];
-				if (!entity1.isTerminated() && !entity2.isTerminated()) {
+				if (!entity1.isTerminated() && !entity2.isTerminated() && Entity.apparentlyCollide(entity1, entity2)) {
 					//It is possible that entity1 or entity2 is terminated in a previous collision (that is handled in this invocation
 					// of resolveCollsions), such that it still belongs to the collisionSet.
 					showCollision(collisionListener, entity1, entity2);
