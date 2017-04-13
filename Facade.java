@@ -580,7 +580,6 @@ public class Facade implements IFacade {
 	 */
 	public double[] getPositionCollisionEntity(Object entity1, Object entity2) throws ModelException {
 		try {
-			
 			return Entity.getCollisionPosition((Entity)entity1, (Entity)entity2).getAsArray();
 		}
 		catch (NullPointerException exc) {
