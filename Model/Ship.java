@@ -27,7 +27,8 @@ import be.kuleuven.cs.som.annotate.*;
 public class Ship extends Entity {
 	
 	/**
-	 * Initialize this new ship with given position, velocity , radius, orientation, density, mass and thruster status.
+	 * Initialize this new ship with given position, velocity , radius, orientation, mass and thruster status.
+	 * 
 	 * @param xComPos
 	 * 			xComponent of the position this new ship
 	 * @param yComPos
@@ -158,7 +159,7 @@ public class Ship extends Entity {
 	protected void setPosition(Position position) throws IllegalPositionException, TerminatedException {
 		super.setPosition(position);
 		if (this.magazine != null) {
-			//When initializing this ship, it is possible that magazine == null and we still want to invoke this method.
+			// When initializing this ship, it is possible that magazine == null and we still want to invoke this method.
 			for (Bullet bullet: getMagazine()) {
 				bullet.setPosition(position);
 			}
@@ -341,10 +342,11 @@ public class Ship extends Entity {
 	}
 	
 	/**
-	 * Return the acceleration of this ship
-	 * @return 0 if the thruster of this ship is not activated, and the quotient of this ship's thruster force and mass if the
+	 * Return the acceleration of this ship.
+	 * 
+	 * @return 0 if the thruster of this ship is not activated, and the quotient of this ship's thruster force and total mass if the
 	 * 				thruster is activated
-	 * 			| if (hasThrusterActivated()) then result == getThrusterForce() / getMass()
+	 * 			| if (hasThrusterActivated()) then result == getThrusterForce() / getTotalMass()
 	 * 			|	else result == 0
 	 */
 	public double getAcceleration() {
@@ -459,8 +461,10 @@ public class Ship extends Entity {
 	 * @effect	| if (apparentlyCollidesWithVerticalBoundary())
 	 * 			|	then setVelocity(-getVelocity().getxComponent(), getVelocity().getyComponent())
 	 * @throws	TerminatedException
-	 * 			| isTerminated()
+	 * 			This entity is terminated.
+	 * 			| this.isTerminated()
 	 * @throws	IllegalMethodCallException
+	 * 			This entity is not associated to a world or this entity does not collide with the boundary of its world.
 	 * 			| getWorld() == null || !apparentlyCollidesWithBoundary()
 	 */
 	@Override
@@ -516,6 +520,7 @@ public class Ship extends Entity {
 	
 	/**
 	 * Resolve a collision between two ships.
+	 * 
 	 * @param ship1
 	 * 			The first ship involved in a collision.
 	 * @param ship2
@@ -888,6 +893,7 @@ public class Ship extends Entity {
 	
 	/**
 	 * Load a bullet in the magazine of this ship.
+	 * 
 	 * @param bullet
 	 * 		The bullet to be loaded in the magazine this ship.
 	 * @effect The ship of the given bullet is set to this ship.
@@ -898,7 +904,7 @@ public class Ship extends Entity {
 	 * 		| new.hasLoadedInMagazine(bullet) && ! new.hasFired(bullet)
 	 * @throws IllegalBulletException
 	 * 			This ship cannot have the given bullet as bullet,
-	 * 				or (this ship cannot fully surround the given bullet)
+	 * 				or (this ship cannot fully surround the given bullet),
 	 * 				or (the bullet has been fired by this ship but does not apparently collide with this ship), 
 	 * 				or (the ship associated to the given bullet is effective but different from this ship).
 	 * 			| @see implementation
@@ -909,7 +915,8 @@ public class Ship extends Entity {
 	public void loadBullet(Bullet bullet) throws IllegalBulletException, TerminatedException {
 		if (this.isTerminated())
 			throw new TerminatedException();
-		if (! canHaveAsBullet(bullet) || !canSurround(bullet) || (hasFired(bullet) && ! Entity.apparentlyCollide(this, bullet)) ||
+		if (! canHaveAsBullet(bullet) || ! canSurround(bullet) || 
+				(hasFired(bullet) && ! Entity.apparentlyCollide(this, bullet)) ||
 				(bullet.getShip() != null && bullet.getShip() != this))
 			throw new IllegalBulletException();
 		if (hasFired(bullet))

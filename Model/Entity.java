@@ -63,14 +63,14 @@ public abstract class Entity {
 		if (! canHaveAsRadius(radius))
 			throw new IllegalRadiusException();
 		this.radius = radius;
-		double density = mass / getVolume();
+		double density = mass / getVolume(); 
 		if (! canHaveAsDensity(density))
 			density = getMinimalDensity();
 		setDensity(density);
 	}
 	
 	/**
-	 * Return a copy of this entity
+	 * Return a copy of this entity.
 	 * 
 	 * @return A copy of this entity
 	 * @throws TerminatedException
@@ -175,8 +175,7 @@ public abstract class Entity {
 	 * 			This entity is terminated
 	 * 			| this.isTerminated()
 	 */
-	public void move(double duration) throws IllegalArgumentException, IllegalComponentException, TerminatedException, 
-																				IllegalMethodCallException, IllegalPositionException {
+	public void move(double duration) throws IllegalArgumentException, IllegalComponentException, TerminatedException, IllegalPositionException {
 		if (isTerminated())
 			throw new TerminatedException();
 		setPosition(getPosition().move(getVelocity(), duration));
@@ -350,9 +349,8 @@ public abstract class Entity {
 		return getVolume() * getDensity();
 	}
 	
-	
 	/**
-	 * Set the density of this entity to the given density
+	 * Set the density of this entity to the given density.
  	 *
 	 * @param density
 	 * 		The new density for this entity.
@@ -455,7 +453,7 @@ public abstract class Entity {
 	
 	
 	/**
-	 * Calculate the distance between the centres of two entities
+	 * Calculate the distance between the centres of two entities.
 	 * 
 	 * @param entity1
 	 * 			The first entity
@@ -551,14 +549,24 @@ public abstract class Entity {
 	/**
 	 * Check whether this entity can fully surround the given entity.
 	 * 
-	 * @return	True iff the radius of this entity is greater than or equal to the radius of the given entity.
-	 * 			| result == (getRadius() >= other.getRadius())
+	 * @param other
+	 * 			The entity to check.
+	 * @return True iff the radius of this entity is greater than or equal to the radius of the given entity.
+	 * 		| result == (getRadius() >= other.getRadius())
+	 * @throws NullPointerException
+	 * 			The given entity is not effective
+	 * 		| other == null
+	 * @throws TerminatedException
+	 * 			One of the entities is terminated
+	 * 			| (entity1.isTerminated() || entity2.isTerminated())
 	 */
 	public boolean canSurround(Entity other) throws NullPointerException, TerminatedException {
 		if (this.isTerminated() || other.isTerminated())
 			throw new TerminatedException();
 		return (getRadius() >= other.getRadius());
 	}
+	
+	
 	
 	
 	/**
@@ -581,8 +589,8 @@ public abstract class Entity {
 	 * @throws TerminatedException
 	 * 			One of the entities is terminated
 	 * 			| (entity1.isTerminated() || entity2.isTerminated())
-	 * TODO
 	 */
+	// TODO: change documentation!!!!!
 	public static boolean apparentlyCollide(Entity entity1, Entity entity2) throws TerminatedException {
 		if (entity1 == null || entity2 == null)
 			return false;
@@ -780,7 +788,7 @@ public abstract class Entity {
 	}
 	
 	/**
-	 * Check whether this entity collides with a horizontal boundary of its world.
+	 * Check whether this entity apparently collides with a horizontal boundary of its world.
 	 * 
 	 * @return True iff the world of this entity is effective and
 	 * 			the distance between the centre of this entity and a horizontal boundary of its world is less than or equal to
@@ -801,7 +809,7 @@ public abstract class Entity {
 	}
 	
 	/**
-	 * Check whether this entity collides with a vertical boundary of its world.
+	 * Check whether this entity apparently collides with a vertical boundary of its world.
 	 * 
 	 * @return True iff the world of this entity is effective and
 	 * 			the distance between the centre of this entity and a vertical boundary of its world is less than or equal to
@@ -816,15 +824,15 @@ public abstract class Entity {
 			throw new TerminatedException();
 		if (getWorld() == null)
 			return false;
-		return (getPosition().getxComponent() <= getRadius() * (2 - ACCURACY_FACTOR) && getVelocity().getxComponent() < 0)
+    		return (getPosition().getxComponent() <= getRadius() * (2 - ACCURACY_FACTOR) && getVelocity().getxComponent() < 0)
 				|| (getWorld().getWidth() - getPosition().getxComponent() <= getRadius() * (2 - ACCURACY_FACTOR)
 																&& getVelocity().getxComponent() > 0);
 	}
-	
+  
 	/**
-	 * Check whether this entity collides with the boundary of its world.
+	 * Check whether this entity apparently collides with the boundary of its world.
 	 * 
-	 * @return true iff this entity collides with a horizontal or vertical boundary.
+	 * @return true iff this entity apparently collides with a horizontal or vertical boundary.
 	 * 			| @see implementation
 	 * @throws TerminatedException
 	 * 			This entity is terminated.
@@ -914,7 +922,7 @@ public abstract class Entity {
 	 * Make this entity bounce of the boundary of its world.
 	 * 
 	 * @throws IllegalMethodCallException
-	 * 			This entity is not associated to a world or this entity does not collide with the boundary of its world
+	 * 			This entity is not associated to a world or this entity does not collide with the boundary of its world.
 	 * 			| getWorld() == null || !apparentlyCollidesWithBoundary()
 	 * @throws TerminatedException
 	 * 			This entity is terminated.
@@ -927,7 +935,11 @@ public abstract class Entity {
 	 * 
 	 * @param world
 	 * 			The world to check.
-	 * @return | @see implementation
+	 * @return If this entity is terminated, true iff the given world is null.
+	 * 			| @see implementation
+	 * @return If this entity is not terminated, true iff the given world is null or
+	 * 			the given world is effective and can have this entity as entity.
+	 * 			| @see implementation
 	 */
 	public boolean canHaveAsWorld(World world) {
 		if (isTerminated())
@@ -946,7 +958,7 @@ public abstract class Entity {
 	
 	/**
 	 * Check whether this entity has a proper world.
-	 * 
+   *
 	 * @return If this entity is terminated, true iff the world associated to this entity is null.
 	 * 			| if (this.isTerminated())
 	 * 			|	then result == (getWorld() == null)

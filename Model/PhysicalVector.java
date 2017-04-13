@@ -1,10 +1,7 @@
 package asteroids.model.representation;
 
-import asteroids.model.exceptions.IllegalComponentException;
-import asteroids.model.exceptions.NotFiniteException;
-import be.kuleuven.cs.som.annotate.Basic;
-import be.kuleuven.cs.som.annotate.Raw;
-import be.kuleuven.cs.som.annotate.Value;
+import asteroids.model.exceptions.*;
+import be.kuleuven.cs.som.annotate.*;
 
 /**
  * A class representing a physical vector.
@@ -119,7 +116,7 @@ abstract class PhysicalVector {
 			throw new NotFiniteException();
 		return result;
 	}
-	
+
 	/**
 	 * Return the difference of this physical vector with the given other physical vector.
 	 * 

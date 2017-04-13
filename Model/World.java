@@ -60,7 +60,7 @@ public class World {
 	 * 
 	 * @effect Each entity is removed from this world.
 	 * 		 | for each entity in getEntities() : remove(entity)
-	 * @post   This world  is terminated.
+	 * @post   This world is terminated.
 	 *       | new.isTerminated()
 	 */
 	public void terminate() {
@@ -123,6 +123,7 @@ public class World {
 	 * A variable registering the maximal height of any world.
 	 */
 	private static final double maxHeight = Double.MAX_VALUE;
+	
 	
 	/**
 	 * Return the width of this world.
@@ -338,7 +339,6 @@ public class World {
 	 * 			|	(entity != other) && Entity.overlap(entity, other)
 	 */
 	public void addEntity(Entity entity) throws IllegalArgumentException, OverlapException {
-		//We do not explicitly check for the termination of this world here, because that is already checked in canHaveAsEntity(entity).
 		if (!canHaveAsEntity(entity) || (entity.getWorld() != null) || hasAsEntity(entity))
 			throw new IllegalArgumentException();
 		if (entity != null) {
@@ -465,13 +465,10 @@ public class World {
 	 * Determine the position in this world where the first collision between two entities in this world will take place.
 	 * 
 	 * @return	| if (for some entity in getEntities() : entity.collidesWithBoundaryAfterMove(getTimeToFirstCollision())
-	 * 			|	then (for some entity in { ent in getEntities | entity.collidesWithBoundaryAfterMove(getTimeToFirstCollision()) } :
-	 * 			|				result == entity.getCollisionWithBoundaryPosition())
+	 * 			|	then result == entity.getCollisionWithBoundaryPosition()
 	 * @return	| if (for some entity1, entity2 in getEntities() : (entity1 != entity2) && Entity.collideAfterMove(entity1, entity2,
 	 * 			|																							 getTimeToFirstCollision()))
-	 * 			|	then (for some (entity1, entity2) in { (ent1, ent2) in getEntities() x getEntities() | (entity1 != entity2) && 
-	 * 			|		Entity.collideAfterMove(entity1, entity2, getTimeToFirstCollision()) } : 
-	 * 			|			result == Entity.getCollisionPosition(entity1, entity2))
+	 * 			|	then result == Entity.getCollisionPosition(entity1, entity2)
 	 * @throws IllegalMethodCallException
 	 * 			| getEntities().isEmpty()
 	 * @throws TerminatedException
@@ -548,13 +545,7 @@ public class World {
 		if (collisionListener != null && !isTerminated()) {
 			if (entity1.mustShowCollisionWith(entity2)) {
 				Position collisionPosition = Entity.getCollisionPosition(entity1, entity2);
-				try {
 				collisionListener.objectCollision(entity1, entity2, collisionPosition.getxComponent(), collisionPosition.getyComponent());
-				}
-				catch (NullPointerException exc) {
-					int a = 1;
-					System.out.println(a);
-				}
 			}
 		}
 	}
@@ -631,5 +622,5 @@ public class World {
 			else
 				throw new IllegalCollisionException();
 		}
-	}
+}
 }

@@ -26,7 +26,7 @@ import be.kuleuven.cs.som.annotate.*;
 
 public class Bullet extends Entity {
 	/**
-	 * Initialize this new Bullet with given position, velocity, radius, density and mass.
+	 * Initialize this new Bullet with given position, velocity, radius and mass.
 	 * 
 	 * @param xComPos
 	 * 			The xComponent of the position of this new bullet.
@@ -36,11 +36,11 @@ public class Bullet extends Entity {
 	 * 			The xComponent of the velocity of this new bullet.
 	 * @param yComVel
 	 * 			The yComponent of the velocity of this new bullet.
-	 * @param density
-	 * 			The density of this new bullet.
+	 * @param radius
+	 * 			The radius of this new bullet.
 	 * @param mass
 	 * 			The mass of this new bullet.
-	 * @effect	| super(xComPos, yComPos, xComVel, yComVel, radius, density, mass)
+	 * @effect	| super(xComPos, yComPos, xComVel, yComVel, radius, mass)
 	 */
 	@Raw
 	public Bullet(double xComPos, double yComPos, double xComVel, double yComVel, double radius,
@@ -108,7 +108,6 @@ public class Bullet extends Entity {
 			super.terminate();
 		}
 	}
-	
 	
 	/** 
 	 * Check whether this bullet can have the given density as its density
@@ -295,7 +294,7 @@ public class Bullet extends Entity {
 	 * @effect	| if (getNbOfBouces() >= getMaximalNbOfBounces())
 	 * 			|	then terminate()
 	 * @effect	| if (getNbOfBouces() < getMaximalNbOfBounces())
-	 * 			|	then stepNbOfBounces
+	 * 			|	then stepNbOfBounces()
 	 * @effect	| if (getNbOfBouces() < getMaximalNbOfBounces() && apparentlyCollidesWithHorizontalBoundary())
 	 * 			|	then setVelocity(getVelocity().getxComponent(), -getVelocity().getyComponent())
 	 * @effect	| if (getNbOfBouces() < getMaximalNbOfBounces() && apparentlyCollidesWithVerticalBoundary())
@@ -328,7 +327,7 @@ public class Bullet extends Entity {
 	 * 
 	 * @effect	| if (other instanceof Ship && ((Ship)other).hasFired(this))
 	 * 			|	then ((Ship)other).loadBullet(this)
-	 * @effect	| if ((other instanceof Ship && !((Ship)other).hasFired(this)) || other instancof Bullet)
+	 * @effect	| if ((other instanceof Ship && !((Ship)other).hasFired(this)) || other instanceof Bullet)
 	 * 			|	then this.terminate() && other.terminate()
 	 * @throws	TerminatedException
 	 * 			| this.isTerminated() || other.isTerminated()
