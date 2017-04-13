@@ -100,9 +100,6 @@ public class Bullet extends Entity {
 		if (!isTerminated()) {
 			if (getShip() != null)
 				getShip().removeBullet(this);
-			if (getWorld() != null) {
-				getWorld().removeEntity(this);
-			}
 			super.terminate();
 		}
 	}
