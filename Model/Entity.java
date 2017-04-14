@@ -580,16 +580,13 @@ public abstract class Entity {
 	 * 			|																					 entity1.getWorld() != entity2.getWorld())
 	 * 			|	then result == false.
 	 * @return true if both entities are effective and associated to the same world and if the distance between the centres of the entities
-	 * 			lies within the range determined by the sum of their radii multiplied with ACCURACY_FACTOR and 2 - ACCURACY_FACTOR respectively.
-	 * 			| if ((entity1 != null) && (entity2!= null) && (entity1 != entity2) && (entity1.getWorld() != null) 
-	 * 			|																	&& (entity1.getWorld() == entity2.getWorld()))
-	 * 			|	then result == (ACCURACY_FACTOR * getSumOfRadii(entity1, entity2) <= getDistanceBetweenCentres(entity1, entity2)) &&
-	 *			|		(getDistanceBetweenCentres(entity1, entity2) <= (2 - ACCURACY_FACTOR) * getSumOfRadii(entity1, entity2))
+	 * 			lies within the range determined by the sum of their radii multiplied with ACCURACY_FACTOR and 2 - ACCURACY_FACTOR respectively,
+	 * 			and if both entities are moving towards each other.
+	 * 			| @see implementation
 	 * @throws TerminatedException
 	 * 			One of the entities is terminated
 	 * 			| (entity1.isTerminated() || entity2.isTerminated())
 	 */
-	// TODO: change documentation!!!!!
 	public static boolean apparentlyCollide(Entity entity1, Entity entity2) throws TerminatedException {
 		if (entity1 == null || entity2 == null)
 			return false;
@@ -791,7 +788,8 @@ public abstract class Entity {
 	 * 
 	 * @return True iff the world of this entity is effective and
 	 * 			the distance between the centre of this entity and a horizontal boundary of its world is less than or equal to
-	 * 				(2 - ACCURACY_FACTOR) times the radius of this entity.
+	 * 				(2 - ACCURACY_FACTOR) times the radius of this entity, and
+	 * 			this entity is moving towards the closest horizontal boundary.
 	 * 			| @see implementation
 	 * @throws TerminatedException
 	 * 			This entity is terminated.
@@ -812,7 +810,8 @@ public abstract class Entity {
 	 * 
 	 * @return True iff the world of this entity is effective and
 	 * 			the distance between the centre of this entity and a vertical boundary of its world is less than or equal to
-	 * 				(2 - ACCURACY_FACTOR) times the radius of this entity.
+	 * 				(2 - ACCURACY_FACTOR) times the radius of this entity, and
+	 * 			this entity is moving towards the closest vertical boundary.
 	 * 			| @see implementation
 	 * @throws TerminatedException
 	 * 			This entity is terminated.
@@ -823,7 +822,7 @@ public abstract class Entity {
 			throw new TerminatedException();
 		if (getWorld() == null)
 			return false;
-    		return (getPosition().getxComponent() <= getRadius() * (2 - ACCURACY_FACTOR) && getVelocity().getxComponent() < 0)
+    	return (getPosition().getxComponent() <= getRadius() * (2 - ACCURACY_FACTOR) && getVelocity().getxComponent() < 0)
 				|| (getWorld().getWidth() - getPosition().getxComponent() <= getRadius() * (2 - ACCURACY_FACTOR)
 																&& getVelocity().getxComponent() > 0);
 	}

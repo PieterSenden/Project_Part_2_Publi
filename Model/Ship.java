@@ -23,36 +23,33 @@ import be.kuleuven.cs.som.annotate.*;
  *
  */
 
-
 public class Ship extends Entity {
 	
 	/**
 	 * Initialize this new ship with given position, velocity , radius, orientation, mass and thruster status.
 	 * 
 	 * @param xComPos
-	 * 			xComponent of the position this new ship
+	 * 			The xComponent of the position this new ship.
 	 * @param yComPos
-	 * 			yComponent of the position this new ship
+	 * 			The yComponent of the position this new ship.
 	 * @param xComVel
-	 * 			xComponent of the velocity of this new ship
+	 * 			The xComponent of the velocity of this new ship.
 	 * @param yComVel
-	 * 			yComponent of the velocity of this new ship
+	 * 			The yComponent of the velocity of this new ship.
 	 * @param radius
-	 * 			radius of this new ship
+	 * 			The radius of this new ship.
 	 * @param orientation
-	 * 			orientation of this new ship
-	 * @effect The position of this new ship is set to a new position with given xComponent and yComponent
-	 * 			| setPosition(xComPos, yComPos)
-	 * @effect The velocity of this new ship is set to a new velocity with given xComponent and yComponent
-	 * 			| setVelocity(xComVel, yComVel)
+	 * 			The orientation of this new ship.
+	 * @param mass
+	 * 			The mass of this new ship.
+	 * @param thrusterStatus
+	 * 			The thruster status of this new ship.
+	 * @effect The super constructor is called to initialize this new ship.
+	 * 			| super(xComPos, yComPos, xComVel, yComVel, radius, mass)
 	 * @effect The orientation of this new ship is set to the given orientation
 	 * 			| setOrientation(orientation)
-	 * @post   If the given radius is valid, the radius of this new ship is set to the given radius
-	 * 			| if (isValidRadius(radius))
-	 * 			|	then new.getRadius() == radius
-	 * @throws	IllegalRadiusException
-	 * 			The given radius is not valid
-	 * 			| ! isValidRadius(radius)
+	 * @effect The thruster status of this new ship is set to the given thruster status.
+	 * 			| setThrust(thrusterStatus)
 	 */
 	@Raw
 	public Ship(double xComPos, double yComPos, double xComVel, double yComVel, double radius, double orientation,
@@ -62,29 +59,59 @@ public class Ship extends Entity {
 		setOrientation(orientation);
 	}
 	
-	
 	/**
-	 * Initialize this new ship with position with given xComponent and yComponent, 
+	 * Initialize this new ship with position with given position, velocity, radius, orientation and mass.
+	 * 
 	 * @param xComPos
+	 * 			The xComponent of the position this new ship.
 	 * @param yComPos
+	 * 			The yComponent of the position this new ship.
 	 * @param xComVel
+	 * 			The xComponent of the velocity of this new ship.
 	 * @param yComVel
+	 * 			The yComponent of the velocity of this new ship.
 	 * @param radius
+	 * 			The radius of this new ship.
 	 * @param orientation
-	 * @throws IllegalComponentException
-	 * @throws IllegalRadiusException
+	 * 			The orientation of this new ship.
+	 * @param mass
+	 * 			The mass of this new ship.
+	 * @effect This new ship is initialized with the given position as its position, the given velocity as its velocity,
+	 * 			the given radius as its radius, the given orientation as its orientation, the given mass as its mass and 
+	 * 			with deactivated thruster.
+	 * 			| this(xComPos, yComPos, xComVel, yComVel, radius, orientation, mass, false)
 	 */
-	@Raw 
-	public Ship(double xComPos, double yComPos, double xComVel, double yComVel, double radius,
-			double orientation) throws IllegalComponentException, IllegalRadiusException {
-		this(xComPos, yComPos, xComVel, yComVel, radius, orientation, 10e20, false);
-	}
-	
 	@Raw 
 	public Ship(double xComPos, double yComPos, double xComVel, double yComVel, double radius,
 			double orientation, double mass) throws IllegalComponentException, IllegalRadiusException {
 		this(xComPos, yComPos, xComVel, yComVel, radius, orientation, mass, false);
 	}
+	
+	/**
+	 * Initialize this new ship with position with given position, velocity, radius and orientation.
+	 * 
+	 * @param xComPos
+	 * 			The xComponent of the position this new ship.
+	 * @param yComPos
+	 * 			The yComponent of the position this new ship.
+	 * @param xComVel
+	 * 			The xComponent of the velocity of this new ship.
+	 * @param yComVel
+	 * 			The yComponent of the velocity of this new ship.
+	 * @param radius
+	 * 			The radius of this new ship.
+	 * @param orientation
+	 * 			The orientation of this new ship.
+	 * @effect This new ship is initialized with the given position as its position, the given velocity as its velocity,
+	 * 			the given radius as its radius, the given orientation as its orientation and the default mass as its mass.
+	 * 			| this(xComPos, yComPos, xComVel, yComVel, radius, orientation, 10e20)
+	 */
+	@Raw 
+	public Ship(double xComPos, double yComPos, double xComVel, double yComVel, double radius,
+			double orientation) throws IllegalComponentException, IllegalRadiusException {
+		this(xComPos, yComPos, xComVel, yComVel, radius, orientation, 10e20);
+	}
+	
 	
 	/**
 	 * Initialize a new ship with given xComponent, yComponent and radius.
@@ -314,24 +341,6 @@ public class Ship extends Entity {
 		return result;
 	}
 	
-//	/**
-//	 * Initialize this new ship with given thrusterForce.
-//	 * 
-//	 * @param  force
-//	 *         The thrusterForce for this new ship.
-//	 * @post   If the given thrusterForce is a valid thrusterForce for any ship,
-//	 *         the thrusterForce of this new ship is equal to the given
-//	 *         thrusterForce. Otherwise, the thrusterForce of this new ship is equal
-//	 *         to 1.1e21.
-//	 *       | if (isValidThrusterForce(force))
-//	 *       |   then new.getThrusterForce() == force
-//	 *       |   else new.getThrusterForce() == 1.1e21
-//	 */
-//	public Ship(double force) {
-//		if (! isValidThrusterForce(force))
-//			force = 1.1e21;
-//		this.force = force;
-//	}
 	
 	/**
 	 * Return the thruster force of this ship.
@@ -533,8 +542,8 @@ public class Ship extends Entity {
 	 * @throws TerminatedException
 	 * 			One of the ships is terminated
 	 * 			| ship1.isTerminated() || ship2.isTerminated()
-	 * 
 	 */
+	@Model
 	static void resolveCollisionBetweenShips(Ship ship1, Ship ship2) throws IllegalMethodCallException, TerminatedException {
 		if (!Entity.apparentlyCollide(ship1, ship2))
 			throw new IllegalMethodCallException();
@@ -844,7 +853,7 @@ public class Ship extends Entity {
 	 * 			and added to the world containing this ship, if any, and hasFired(randomBullet) is true.
 	 * 		| if (getNbOfBulletsInMagazine() != 0 && getWorld() != null)
 	 * 		|	then for precisely one bullet in getMagazine():
-	 * 		|		new.hasFired((new bullet)) && ! new.hasLoadedInMagazine((new bullet))
+	 * 		|		new.hasFired((new bullet)) && ! new.hasLoadedInMagazine((new bullet)) && (new bullet).getWorld() == this.getWorld()
 	 * @effect If this ship is not terminated and if the magazine of this ship is not empty, said random bullet is set to fire configuration.
 	 * 		| randomBullet.setToFireConfiguration()
 	 * @effect If this ship is not terminated and if the magazine of this ship is not empty and
@@ -903,6 +912,8 @@ public class Ship extends Entity {
 	 * 		| bullet.setToLoadConfiguration()
 	 * @post This ship has the given bullet loaded in its magazine and this ship has not fired this bullet.
 	 * 		| new.hasLoadedInMagazine(bullet) && ! new.hasFired(bullet)
+	 * @post The given bullet is not associated to any world.
+	 * 		| (new bullet).getWorld() == null
 	 * @throws IllegalBulletException
 	 * 			This ship cannot have the given bullet as bullet,
 	 * 				or (this ship cannot fully surround the given bullet),

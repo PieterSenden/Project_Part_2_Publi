@@ -61,7 +61,7 @@ public class Bullet extends Entity {
 	 * 			The yComponent of the velocity of this new bullet.
 	 * @param radius
 	 * 			The radius of this new bullet.
-	 * @effect	| this(xComPos, yComPos, xComVel, yComVel, radius, 7.8e12, 10e20)
+	 * @effect	| this(xComPos, yComPos, xComVel, yComVel, radius, 10e20)
 	 */
 	@Raw
 	public Bullet(double xComPos, double yComPos, double xComVel, double yComVel, double radius) throws IllegalComponentException, 
@@ -100,6 +100,9 @@ public class Bullet extends Entity {
 		if (!isTerminated()) {
 			if (getShip() != null)
 				getShip().removeBullet(this);
+			if (getWorld() != null) {
+				getWorld().removeEntity(this);
+			}
 			super.terminate();
 		}
 	}
@@ -443,6 +446,7 @@ public class Bullet extends Entity {
 	 * 		 |			Math.tan(getShip().getOrientation()) * new.getVelocity().getxComponent()
 	 * @note This method must only be invoked in the method fireBullet() of the class Ship
 	 */
+	@Model
 	void setToFireConfiguration() throws IllegalComponentException, IllegalPositionException {
 		if (!isTerminated() && getShip() != null && getShip().hasLoadedInMagazine(this)) {
 			double newDistanceBetweenCentres = (1 + 5 * (1 - ACCURACY_FACTOR)) * Entity.getSumOfRadii(this, getShip());
@@ -461,6 +465,7 @@ public class Bullet extends Entity {
 	 * 		 |			new.getVelocity().equals(new Velocity(0, 0)) && (new.getNbOfBounces() == 0)
 	 * @note This method must only be invoked in the method loadBullet() of the class Ship
 	 */
+	@Model
 	void setToLoadConfiguration() {
 		if (!isTerminated() && (getShip() != null) && getShip().hasLoadedInMagazine(this)) {
 			setPosition(getShip().getPosition());
