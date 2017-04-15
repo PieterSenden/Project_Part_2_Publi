@@ -91,7 +91,8 @@ public class Bullet extends Entity {
 	/**
 	 * Terminate this bullet.
 	 * 
-	 * @effect	| if (!isTerminated()) then super.terminate()
+	 * @effect	| if (!isTerminated() && getShip != null)
+	 * 			| super.terminate()
 	 * @effect	| if (!isTerminated() && getShip != null)
 	 * 			|	then getShip.removeBullet(this)
 	 */

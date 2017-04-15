@@ -45,6 +45,15 @@ public class TestEntity {
 		assertTrue(staticEntity1.canHaveAsPosition(position1));
 	}
 	
+	@Test
+	public void terminate() {
+		world1.addEntity(movingEntityInWorld1);
+		movingEntityInWorld1.terminate();
+		assertTrue(movingEntityInWorld1.isTerminated());
+		assertNull(movingEntityInWorld1.getWorld());
+		assertFalse(world1.hasAsEntity(movingEntityInWorld1));
+	}
+	
 	@Test(expected=IllegalArgumentException.class)
 	public void move_IllegalArgumentCase() {
 		staticEntity1.move(-1);
@@ -216,11 +225,9 @@ public class TestEntity {
 		world1.addEntity(movingEntityInWorld3);
 		double duration = Entity.getTimeToCollision(movingEntityInWorld2, movingEntityInWorld3);
 		assertEquals(duration, 5, EPSILON * 1e-5);
-//		System.out.println(duration);
 		assertTrue(Entity.collideAfterMove(movingEntityInWorld2, movingEntityInWorld3, 5));
-		for (int i = 0; i < 50000; i++) {
-			assertFalse(Entity.collideAfterMove(movingEntityInWorld2, movingEntityInWorld3, i * 0.00001));
-		}
+		for (int i = 0; i < 50000; i++)
+			assertFalse(Entity.collideAfterMove(movingEntityInWorld2, movingEntityInWorld3, i * 0.0001));
 	}
 	
 	@Test(expected=NullPointerException.class)
@@ -272,9 +279,9 @@ public class TestEntity {
 	}
 	
 	@Test(expected=IllegalMethodCallException.class)
-	public void getCollisionPosition_IllegalMethodCallCase() {
+	public void getCollisionPosition_IllegalMethodCallExceptionCase() {
 		world1.addEntity(movingEntityInWorld1);
-		Entity.getTimeToCollision(movingEntityInWorld1, movingEntityInWorld2);
+		Entity.getCollisionPosition(movingEntityInWorld1, movingEntityInWorld2);
 	}
 	
 	@Test

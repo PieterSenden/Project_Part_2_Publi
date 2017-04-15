@@ -692,11 +692,13 @@ public abstract class Entity {
 	 * @throws OverlapException
 	 * 			The entities overlap.
 	 * 			| overlap(entity1, entity2)
-	 * @note   Theoretically, two entities that are contained in the same world cannot overlap. However, this exception is included
-	 * 			as an additional safety check.
+	 * @note Theoretically, two entities that are contained in the same world, cannot overlap.
+	 * 			This exception is included as an additional safety check. 
 	 * @throws TerminatedException
 	 * 			One of the entities is terminated.
 	 * 			| (entity1.isTerminated() || entity2.isTerminated())
+	 * @throws IllegalMethodCallException
+	 * 			The world of one entity is not effective or both entities are not contained in the same world.
 	 */
 	public static double getTimeToCollision(Entity entity1, Entity entity2) throws NullPointerException, IllegalMethodCallException,
 																		OverlapException, TerminatedException {
@@ -729,7 +731,7 @@ public abstract class Entity {
 	}
 	
 	/**
-	 * Determine the position where, if ever, two entities will collide
+	 * Determine the position where, if ever, two entities will collide.
 	 * 
 	 * @param entity1
 	 * 			The first entity.
@@ -754,13 +756,15 @@ public abstract class Entity {
 	 * 			The world of one entity is not effective or both entities are not contained in the same world.
 	 * 			| (entity1.getWorld() == null) || (entity1.getWorld() == entity2.getWorld())
 	 * @throws OverlapException
-	 * 			The entities overlap
+	 * 			The entities overlap.
 	 * 			| overlap(entity1, entity2)
-	 * @note   Theoretically, two entities that are contained in the same world cannot overlap. However, this exception is included
-	 * 			as an additional safety check.
+	 * @note Theoretically, two entities that are contained in the same world, cannot overlap.
+	 * 			This exception is included as an additional safety check. 
 	 * @throws TerminatedException
 	 * 			One of the entities is terminated
 	 * 			| (entity1.isTerminated() || entity2.isTerminated())
+	 * @throws IllegalMethodCallException
+	 * 			The world of one entity is not effective or both entities are not contained in the same world.
 	 */
 	public static Position getCollisionPosition(Entity entity1, Entity entity2) throws NullPointerException, IllegalMethodCallException,
 																OverlapException, TerminatedException {

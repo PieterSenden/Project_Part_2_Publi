@@ -105,12 +105,14 @@ public class Ship extends Entity {
 	 * @effect This new ship is initialized with the given position as its position, the given velocity as its velocity,
 	 * 			the given radius as its radius, the given orientation as its orientation and the default mass as its mass.
 	 * 			| this(xComPos, yComPos, xComVel, yComVel, radius, orientation, 0)
-	 * @note The default mass of a ship is the volume of this new ship multiplied with the minimal density of this new ship.
+	 * @note The default mass is the volume of this new entity multiplied by the minimal density of this ship.
 	 */
 	@Raw 
 	public Ship(double xComPos, double yComPos, double xComVel, double yComVel, double radius,
 			double orientation) throws IllegalComponentException, IllegalRadiusException {
 		this(xComPos, yComPos, xComVel, yComVel, radius, orientation, 0);
+		// The 0 argument for the mass ensures that the mass of this new ship is set to the volume of this new ship
+		// times the minimal density of this ship.
 	}
 	
 	
@@ -627,6 +629,7 @@ public class Ship extends Entity {
 	
 	/**
 	 * Add the given bullet to the magazine of this ship.
+	 * 
 	 * @param bullet
 	 * 		The bullet to be added to the magazine of this ship.
 	 * @post If this ship can have the given bullet as bullet, then the bullet is added to the magazine of this ship.
@@ -650,6 +653,7 @@ public class Ship extends Entity {
 	
 	/**
 	 * Remove the given bullet from the magazine of this ship.
+	 * 
 	 * @param bullet
 	 * 		The bullet to remove from the magazine of this ship.
 	 * @post If the given bullet is effective and is loaded on this ship, then
@@ -780,6 +784,7 @@ public class Ship extends Entity {
 	
 	/**
 	 * Check whether this ship can be associated to the given bullet.
+	 * 
 	 * @param bullet
 	 * 		The bullet to check.
 	 * @return True iff this ship is not terminated, the given bullet is effective, not terminated, and, if the bullet is associated to a world,
@@ -802,6 +807,7 @@ public class Ship extends Entity {
 	
 	/**
 	 * Check whether this ship has proper bullets associated to it.
+	 * 
 	 * @return If this ship is terminated, true iff there are no bullets in the magazine and the collection of all bullets fired by this ship is empty.
 	 * 			| if (this.isTerminated())
 	 * 			|	result == (getMagazine().isEmpty() && getFiredBullets().isEmpty())
@@ -872,6 +878,7 @@ public class Ship extends Entity {
 	
 	/**
 	 * Fire a bullet from the magazine of this ship.
+	 * 
 	 * @post If this ship is not terminated and if the magazine of this ship is not empty and this ship is contained in a world,
 	 * 			then a random bullet randomBullet is removed from the magazine
 	 * 			and added to the world containing this ship, if any, and hasFired(randomBullet) is true.
@@ -1006,6 +1013,5 @@ public class Ship extends Entity {
 	 * 			as the ship by which it has been fired.
 	 * 		| for each bullet in firedBullets: bullet.getShip() == this
 	 */
-	private Set<Bullet> firedBullets = new HashSet<>();
-	
+	private Set<Bullet> firedBullets = new HashSet<>();	
 }
