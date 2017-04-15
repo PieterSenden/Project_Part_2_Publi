@@ -79,17 +79,11 @@ public class TestBullet {
 	}
 	
 	@Test
-	public void terminate_NotYetTerminatedCase() {
+	public void terminate() {
 		loadedBullet.terminate();
 		assertTrue(loadedBullet.isTerminated());
 		assertNull(loadedBullet.getShip());
 		assertFalse(ship.hasAsBullet(loadedBullet));
-	}
-	
-	@Test
-	public void terminate_AlreadyTerminatedCase() {
-		loadedBullet.terminate();
-		loadedBullet.terminate();
 	}
 	
 	@Test

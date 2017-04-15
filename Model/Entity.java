@@ -580,16 +580,13 @@ public abstract class Entity {
 	 * 			|																					 entity1.getWorld() != entity2.getWorld())
 	 * 			|	then result == false.
 	 * @return true if both entities are effective and associated to the same world and if the distance between the centres of the entities
-	 * 			lies within the range determined by the sum of their radii multiplied with ACCURACY_FACTOR and 2 - ACCURACY_FACTOR respectively.
-	 * 			| if ((entity1 != null) && (entity2!= null) && (entity1 != entity2) && (entity1.getWorld() != null) 
-	 * 			|																	&& (entity1.getWorld() == entity2.getWorld()))
-	 * 			|	then result == (ACCURACY_FACTOR * getSumOfRadii(entity1, entity2) <= getDistanceBetweenCentres(entity1, entity2)) &&
-	 *			|		(getDistanceBetweenCentres(entity1, entity2) <= (2 - ACCURACY_FACTOR) * getSumOfRadii(entity1, entity2))
+	 * 			lies within the range determined by the sum of their radii multiplied with ACCURACY_FACTOR and 2 - ACCURACY_FACTOR respectively,
+	 * 			and if both entities are moving towards each other.
+	 * 			| @see implementation
 	 * @throws TerminatedException
 	 * 			One of the entities is terminated
 	 * 			| (entity1.isTerminated() || entity2.isTerminated())
 	 */
-	// TODO: change documentation!!!!!
 	public static boolean apparentlyCollide(Entity entity1, Entity entity2) throws TerminatedException {
 		if (entity1 == null || entity2 == null)
 			return false;
@@ -680,7 +677,7 @@ public abstract class Entity {
 	 * 			The first entity
 	 * @param entity2
 	 * 			The second entity
-	 * @return If both entities are effective, different and are associated to the same effective world the result is determined such that
+	 * @return If both entities are effective, different and are contained in the same effective world, the result is determined such that
 	 * 			the two entities would collide after they would have moved during the given duration, but not earlier.
 	 * 			| if ((entity1 != null) && (entity2!= null) && (entity1 != entity2) && (entity1.getWorld() != null) 
 	 * 			|																	&& (entity1.getWorld() == entity2.getWorld()))
@@ -689,17 +686,26 @@ public abstract class Entity {
 	 * @throws NullPointerException
 	 * 			One of the entities is non-effective.
 	 * 			|	(entity1 == null) || (entity2 == null)
+	 * @throws IllegalMethodCallException
+	 * 			The world of one entity is not effective or both entities are not contained in the same world.
+	 * 			| (entity1.getWorld() == null) || (entity1.getWorld() == entity2.getWorld())
 	 * @throws OverlapException
-	 * 			The entities overlap
+	 * 			The entities overlap.
 	 * 			| overlap(entity1, entity2)
+	 * @note Theoretically, two entities that are contained in the same world, cannot overlap.
+	 * 			This exception is included as an additional safety check. 
 	 * @throws TerminatedException
-	 * 			One of the entities is terminated
+	 * 			One of the entities is terminated.
 	 * 			| (entity1.isTerminated() || entity2.isTerminated())
+	 * @throws IllegalMethodCallException
+	 * 			The world of one entity is not effective or both entities are not contained in the same world.
 	 */
-	public static double getTimeToCollision(Entity entity1, Entity entity2) throws NullPointerException, 
+	public static double getTimeToCollision(Entity entity1, Entity entity2) throws NullPointerException, IllegalMethodCallException,
 																		OverlapException, TerminatedException {
 		if (entity1.isTerminated() || entity2.isTerminated())
 			throw new TerminatedException();
+		if ((entity1.getWorld() == null) || (entity1.getWorld() != entity2.getWorld()))
+			throw new IllegalMethodCallException();
 		if (overlap(entity1, entity2))
 			throw new OverlapException();
 		
@@ -725,7 +731,7 @@ public abstract class Entity {
 	}
 	
 	/**
-	 * Determine the position where, if ever, two entities will collide
+	 * Determine the position where, if ever, two entities will collide.
 	 * 
 	 * @param entity1
 	 * 			The first entity.
@@ -746,17 +752,26 @@ public abstract class Entity {
 	 * @throws NullPointerException
 	 * 			One of the entities is non-effective.
 	 * 			| (entity1 == null) || (entity2 == null)
+	 * @throws IllegalMethodCallException
+	 * 			The world of one entity is not effective or both entities are not contained in the same world.
+	 * 			| (entity1.getWorld() == null) || (entity1.getWorld() == entity2.getWorld())
 	 * @throws OverlapException
-	 * 			The entities overlap
+	 * 			The entities overlap.
 	 * 			| overlap(entity1, entity2)
+	 * @note Theoretically, two entities that are contained in the same world, cannot overlap.
+	 * 			This exception is included as an additional safety check. 
 	 * @throws TerminatedException
 	 * 			One of the entities is terminated
 	 * 			| (entity1.isTerminated() || entity2.isTerminated())
+	 * @throws IllegalMethodCallException
+	 * 			The world of one entity is not effective or both entities are not contained in the same world.
 	 */
-	public static Position getCollisionPosition(Entity entity1, Entity entity2) throws NullPointerException, 
+	public static Position getCollisionPosition(Entity entity1, Entity entity2) throws NullPointerException, IllegalMethodCallException,
 																OverlapException, TerminatedException {
 		if (entity1.isTerminated() || entity2.isTerminated())
 			throw new TerminatedException();
+		if ((entity1.getWorld() == null) || (entity1.getWorld() != entity2.getWorld()))
+			throw new IllegalMethodCallException();
 		if (overlap(entity1, entity2))
 			throw new OverlapException();
 		
@@ -791,7 +806,8 @@ public abstract class Entity {
 	 * 
 	 * @return True iff the world of this entity is effective and
 	 * 			the distance between the centre of this entity and a horizontal boundary of its world is less than or equal to
-	 * 				(2 - ACCURACY_FACTOR) times the radius of this entity.
+	 * 				(2 - ACCURACY_FACTOR) times the radius of this entity, and
+	 * 			this entity is moving towards the closest horizontal boundary.
 	 * 			| @see implementation
 	 * @throws TerminatedException
 	 * 			This entity is terminated.
@@ -812,7 +828,8 @@ public abstract class Entity {
 	 * 
 	 * @return True iff the world of this entity is effective and
 	 * 			the distance between the centre of this entity and a vertical boundary of its world is less than or equal to
-	 * 				(2 - ACCURACY_FACTOR) times the radius of this entity.
+	 * 				(2 - ACCURACY_FACTOR) times the radius of this entity, and
+	 * 			this entity is moving towards the closest vertical boundary.
 	 * 			| @see implementation
 	 * @throws TerminatedException
 	 * 			This entity is terminated.
