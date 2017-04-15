@@ -344,6 +344,24 @@ public class Ship extends Entity {
 		return result;
 	}
 	
+//	/**
+//	 * Initialize this new ship with given thrusterForce.
+//	 * 
+//	 * @param  force
+//	 *         The thrusterForce for this new ship.
+//	 * @post   If the given thrusterForce is a valid thrusterForce for any ship,
+//	 *         the thrusterForce of this new ship is equal to the given
+//	 *         thrusterForce. Otherwise, the thrusterForce of this new ship is equal
+//	 *         to 1.1e21.
+//	 *       | if (isValidThrusterForce(force))
+//	 *       |   then new.getThrusterForce() == force
+//	 *       |   else new.getThrusterForce() == 1.1e21
+//	 */
+//	public Ship(double force) {
+//		if (! isValidThrusterForce(force))
+//			force = 1.1e21;
+//		this.force = force;
+//	}
 	
 	/**
 	 * Return the thruster force of this ship.
@@ -724,16 +742,16 @@ public class Ship extends Entity {
 	 * 
 	 * @param bullet
 	 * 			The bullet to remove from this ship.
-	 * @post This ship does not contain the given bullet as bullet.
-	 * 		| ! new.hasAsBullet(bullet)
-	 * @effect The ship of the given bullet is set to null.
+	 * @post	This ship does not contain the given bullet as bullet.
+	 * 			| ! new.hasAsBullet(bullet)
+	 * @effect	The ship of the given bullet is set to null.
 	 * 			| bullet.setShip(null)
 	 * @throws IllegalArgumentException
 	 * 			This ship does not have the given bullet as bullet.
 	 * 			| ! hasAsBullet(bullet)
 	 * @throws TerminatedException
-	 * 		This ship is terminated
-	 * 		| this.isTerminated()
+	 * 			This ship is terminated
+	 * 			| this.isTerminated()
 	 */
 	@Model
 	void removeBullet(Bullet bullet) throws IllegalArgumentException, TerminatedException {
@@ -866,7 +884,7 @@ public class Ship extends Entity {
 	 * 			and added to the world containing this ship, if any, and hasFired(randomBullet) is true.
 	 * 		| if (getNbOfBulletsInMagazine() != 0 && getWorld() != null)
 	 * 		|	then for precisely one bullet in getMagazine():
-	 * 		|		new.hasFired((new bullet)) && ! new.hasLoadedInMagazine((new bullet)) && (new bullet).getWorld() == this.getWorld()
+	 * 		|		new.hasFired((new bullet)) && ! new.hasLoadedInMagazine((new bullet) && (new bullet).getWorld() == this.getWorld())
 	 * @effect If this ship is not terminated and if the magazine of this ship is not empty, said random bullet is set to fire configuration.
 	 * 		| randomBullet.setToFireConfiguration()
 	 * @effect If this ship is not terminated and if the magazine of this ship is not empty and
