@@ -91,7 +91,7 @@ public class Bullet extends Entity {
 	/**
 	 * Terminate this bullet.
 	 * 
-	 * @effect	| super.terminate()
+	 * @effect	| if (!isTerminated()) then super.terminate()
 	 * @effect	| if (!isTerminated() && getShip != null)
 	 * 			|	then getShip.removeBullet(this)
 	 */
@@ -100,9 +100,6 @@ public class Bullet extends Entity {
 		if (!isTerminated()) {
 			if (getShip() != null)
 				getShip().removeBullet(this);
-			if (getWorld() != null) {
-				getWorld().removeEntity(this);
-			}
 			super.terminate();
 		}
 	}
@@ -488,7 +485,7 @@ public class Bullet extends Entity {
 	 * @note If this method is invoked with an effective ship and does not throw an exception,
 	 * 			then the world of this bullet must be set to null.
 	 */
-	@Raw
+	@Raw @Model
 	void setShip(Ship ship) throws IllegalMethodCallException {
 		if (isTerminated())
 			throw new TerminatedException();

@@ -677,7 +677,7 @@ public abstract class Entity {
 	 * 			The first entity
 	 * @param entity2
 	 * 			The second entity
-	 * @return If both entities are effective, different and are associated to the same effective world the result is determined such that
+	 * @return If both entities are effective, different and are contained in the same effective world, the result is determined such that
 	 * 			the two entities would collide after they would have moved during the given duration, but not earlier.
 	 * 			| if ((entity1 != null) && (entity2!= null) && (entity1 != entity2) && (entity1.getWorld() != null) 
 	 * 			|																	&& (entity1.getWorld() == entity2.getWorld()))
@@ -686,17 +686,24 @@ public abstract class Entity {
 	 * @throws NullPointerException
 	 * 			One of the entities is non-effective.
 	 * 			|	(entity1 == null) || (entity2 == null)
+	 * @throws IllegalMethodCallException
+	 * 			The world of one entity is not effective or both entities are not contained in the same world.
+	 * 			| (entity1.getWorld() == null) || (entity1.getWorld() == entity2.getWorld())
 	 * @throws OverlapException
-	 * 			The entities overlap
+	 * 			The entities overlap.
 	 * 			| overlap(entity1, entity2)
+	 * @note   Theoretically, two entities that are contained in the same world cannot overlap. However, this exception is included
+	 * 			as an additional safety check.
 	 * @throws TerminatedException
-	 * 			One of the entities is terminated
+	 * 			One of the entities is terminated.
 	 * 			| (entity1.isTerminated() || entity2.isTerminated())
 	 */
-	public static double getTimeToCollision(Entity entity1, Entity entity2) throws NullPointerException, 
+	public static double getTimeToCollision(Entity entity1, Entity entity2) throws NullPointerException, IllegalMethodCallException,
 																		OverlapException, TerminatedException {
 		if (entity1.isTerminated() || entity2.isTerminated())
 			throw new TerminatedException();
+		if ((entity1.getWorld() == null) || (entity1.getWorld() != entity2.getWorld()))
+			throw new IllegalMethodCallException();
 		if (overlap(entity1, entity2))
 			throw new OverlapException();
 		
@@ -743,17 +750,24 @@ public abstract class Entity {
 	 * @throws NullPointerException
 	 * 			One of the entities is non-effective.
 	 * 			| (entity1 == null) || (entity2 == null)
+	 * @throws IllegalMethodCallException
+	 * 			The world of one entity is not effective or both entities are not contained in the same world.
+	 * 			| (entity1.getWorld() == null) || (entity1.getWorld() == entity2.getWorld())
 	 * @throws OverlapException
 	 * 			The entities overlap
 	 * 			| overlap(entity1, entity2)
+	 * @note   Theoretically, two entities that are contained in the same world cannot overlap. However, this exception is included
+	 * 			as an additional safety check.
 	 * @throws TerminatedException
 	 * 			One of the entities is terminated
 	 * 			| (entity1.isTerminated() || entity2.isTerminated())
 	 */
-	public static Position getCollisionPosition(Entity entity1, Entity entity2) throws NullPointerException, 
+	public static Position getCollisionPosition(Entity entity1, Entity entity2) throws NullPointerException, IllegalMethodCallException,
 																OverlapException, TerminatedException {
 		if (entity1.isTerminated() || entity2.isTerminated())
 			throw new TerminatedException();
+		if ((entity1.getWorld() == null) || (entity1.getWorld() != entity2.getWorld()))
+			throw new IllegalMethodCallException();
 		if (overlap(entity1, entity2))
 			throw new OverlapException();
 		
@@ -822,7 +836,7 @@ public abstract class Entity {
 			throw new TerminatedException();
 		if (getWorld() == null)
 			return false;
-    	return (getPosition().getxComponent() <= getRadius() * (2 - ACCURACY_FACTOR) && getVelocity().getxComponent() < 0)
+    		return (getPosition().getxComponent() <= getRadius() * (2 - ACCURACY_FACTOR) && getVelocity().getxComponent() < 0)
 				|| (getWorld().getWidth() - getPosition().getxComponent() <= getRadius() * (2 - ACCURACY_FACTOR)
 																&& getVelocity().getxComponent() > 0);
 	}
