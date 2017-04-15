@@ -215,9 +215,12 @@ public class TestEntity {
 		world1.addEntity(movingEntityInWorld2);
 		world1.addEntity(movingEntityInWorld3);
 		double duration = Entity.getTimeToCollision(movingEntityInWorld2, movingEntityInWorld3);
-		assertEquals(duration, 5, EPSILON);
+		assertEquals(duration, 5, EPSILON * 1e-5);
 //		System.out.println(duration);
 		assertTrue(Entity.collideAfterMove(movingEntityInWorld2, movingEntityInWorld3, 5));
+		for (int i = 0; i < 50000; i++) {
+			assertFalse(Entity.collideAfterMove(movingEntityInWorld2, movingEntityInWorld3, i * 0.00001));
+		}
 	}
 	
 	@Test(expected=NullPointerException.class)
@@ -233,9 +236,10 @@ public class TestEntity {
 		assertEquals(Entity.getTimeToCollision(movingEntityInWorld1, movingEntityInWorld3), Double.POSITIVE_INFINITY, EPSILON);
 	}
 	
-	@Test(expected=OverlapException.class)
-	public void getTimeToCollision_OverlapCase() {
-		Entity.getTimeToCollision(entityOverlap1, entityOverlap2);
+	@Test(expected=IllegalMethodCallException.class)
+	public void getTimeToCollision_IllegalMethodCallExceptionCase() {
+		world1.addEntity(movingEntityInWorld1);
+		Entity.getTimeToCollision(movingEntityInWorld1, movingEntityInWorld2);
 	}
 	
 	@Test
@@ -267,9 +271,10 @@ public class TestEntity {
 		Entity.getCollisionPosition(movingEntityInWorld2, null);
 	}
 	
-	@Test(expected=OverlapException.class)
-	public void getCollisionPosition_OverlapCase() {
-		Entity.getCollisionPosition(entityOverlap1, entityOverlap2);
+	@Test(expected=IllegalMethodCallException.class)
+	public void getCollisionPosition_IllegalMethodCallCase() {
+		world1.addEntity(movingEntityInWorld1);
+		Entity.getTimeToCollision(movingEntityInWorld1, movingEntityInWorld2);
 	}
 	
 	@Test

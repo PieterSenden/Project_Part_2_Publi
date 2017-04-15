@@ -56,27 +56,6 @@ public class TestShip {
 	}
 	
 	@Test
-	public void leastExtendedConstructor_LegalCase() throws Exception {
-		constructorShip = new Ship(1, 2, 15);
-		assertEquals(constructorShip.getPosition().getxComponent(), 1, EPSILON);
-		assertEquals(constructorShip.getPosition().getyComponent(), 2, EPSILON);
-		assertEquals(constructorShip.getVelocity().getxComponent(), 0, EPSILON);
-		assertEquals(constructorShip.getVelocity().getyComponent(), 0, EPSILON);
-		assertEquals(constructorShip.getRadius(), 15, EPSILON);
-		assertEquals(constructorShip.getOrientation(), 0, EPSILON);
-	}
-	
-	@Test(expected = IllegalComponentException.class)
-	public void leastExtendedConstructor_IllegalComponent() throws Exception {
-		constructorShip = new Ship(Double.NaN, 2, 15);
-	}
-	
-	@Test(expected = IllegalRadiusException.class)
-	public void leastExtendedConstructor_IllegalRadius() throws Exception {
-		constructorShip = new Ship(1, 2, 3);
-	}
-	
-	@Test
 	public void terminate_NotYetTerminatedCase() {
 		world1.addEntity(ship1);
 		ship1.loadBullets(new Bullet[] {ownBullet1, ownBullet2, ownBullet3});
